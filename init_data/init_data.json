@@ -23,5 +23,29 @@
         "isCompact": false
       }
     }
+  ],
+  "applications": [
+    {
+      "owner": "admin",
+      "name": "mp-pm",
+      "displayName": "CMC 项目管理系统",
+      "logo": "http://localhost:8000/files/maibo-logo.png",
+      "homepageUrl": "http://localhost:5175",
+      "organization": "mabpharm",
+      "cert": "cert-built-in",
+      "enablePassword": true,
+      "enableSignUp": false,
+      "clientId": "mppm-client-id-0001",
+      "clientSecret": "mppm-client-secret-0001-change-me",
+      "enablePkce": true,
+      "grantTypes": ["authorization_code", "refresh_token"],
+      "redirectUris": ["http://localhost:5175/callback"],
+      "tokenFormat": "JWT",
+      "tokenFields": [],
+      "expireInHours": 168,
+      "signinMethods": [
+        { "name": "Password", "displayName": "Password", "rule": "All" }
+      ]
+    }
   ]
 }

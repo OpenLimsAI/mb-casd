@@ -21,7 +21,8 @@
 | Token 端点 | `http://localhost:8000/api/login/oauth/access_token` |
 | JWKS | `http://localhost:8000/.well-known/jwks` |
 | OIDC discovery | `http://localhost:8000/.well-known/openid-configuration` |
-| clientId / clientSecret | 由 Casdoor 生成；记入 mp-pm 的 `.env`，不入库 |
+| clientId | `mppm-client-id-0001` |
+| clientSecret | `mppm-client-secret-0001-change-me`（生产前务必轮换） |
 
 > dev 端点用 `localhost:8000`；后续生产换为正式域名时，同步更新此表与 Casdoor 应用配置。
 
@@ -89,3 +90,4 @@
 | 日期 | 变更 | 说明 |
 |---|---|---|
 | 2026-06-28 | 初始档案 | 角色/权限矩阵取自 mp-pm 当前代码；OIDC 配置待 P4 落地核对 |
+| 2026-06-28 | OIDC 应用注册（P3a） | 在 Casdoor 注册 mp-pm 应用（init_data.json），clientId=mppm-client-id-0001，PKCE 授权码流程，回调 http://localhost:5175/callback |
