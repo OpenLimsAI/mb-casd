@@ -94,7 +94,7 @@ mb-casd/
   - 取舍：「用最新 release」与「与本地源码 `v3.100.0` 对齐」可能冲突。**决定**：实施时查 Docker Hub 最新稳定 release，若 ≥ `v3.100.0` 则钉死该最新版；否则钉死 `v3.100.0`。无论哪种都写死具体版本号，不用浮动 tag。
 - `depends_on` 等 db 健康后启动
 - 启动命令带 `--createDatabase=true`（首启自动建库）
-- 挂载：`./conf:/conf/`、`./init_data/init_data.json:/init_data.json`、`./assets:/assets`（或经 staticBaseUrl 提供）
+- 挂载：`./conf:/conf/`、`./init_data/init_data.json:/init_data.json`、`./assets:/files`（Casdoor 经 `/files` 路由提供该目录，用于 logo/favicon 等品牌资源）
 - 暴露 `8000`
 
 ### 5.3 `app.conf` 关键改动（基于仓库 `conf/app.conf`）
