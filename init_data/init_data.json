@@ -1,1 +1,27 @@
-{}
+{
+  "organizations": [
+    {
+      "owner": "admin",
+      "name": "mabpharm",
+      "displayName": "迈博药业",
+      "websiteUrl": "https://www.mabpharm.com",
+      "favicon": "http://localhost:8000/files/favicon.png",
+      "passwordType": "bcrypt",
+      "passwordOptions": ["AtLeast6"],
+      "countryCodes": ["CN"],
+      "defaultAvatar": "http://localhost:8000/files/maibo-logo.png",
+      "languages": ["zh"],
+      "tags": [],
+      "masterPassword": "",
+      "defaultPassword": "",
+      "enableSoftDeletion": false,
+      "isProfilePublic": false,
+      "themeData": {
+        "themeType": "default",
+        "colorPrimary": "#1a4f9c",
+        "borderRadius": 6,
+        "isCompact": false
+      }
+    }
+  ]
+}
