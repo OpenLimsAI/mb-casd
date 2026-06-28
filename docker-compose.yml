@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  casdoor:
+    image: casbin/casdoor:${CASDOOR_TAG}
+    restart: unless-stopped
+    command: ["--createDatabase=true"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      RUNNING_IN_DOCKER: "true"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./conf/app.conf:/conf/app.conf
+      - ./init_data/init_data.json:/init_data.json
+      - ./assets:/files          # Casdoor 经 /files 路由提供该目录（main.go: SetStaticPath("/files","files")）
+
+volumes:
+  pgdata:
