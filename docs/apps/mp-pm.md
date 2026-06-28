@@ -74,16 +74,22 @@
 ## 4. 接入改造清单（本期 P4）
 
 前端：
-- [ ] 引入 `oidc-client-ts`（或 `casdoor-js-sdk`），授权码 + PKCE
-- [ ] 新增 `/callback` 路由页
-- [ ] 改 `src/store/auth.ts`：`currentUser` 从已验证 token 的角色 claim 解析；保留 `useAuth` 接口形态
-- [ ] 未登录重定向到 Casdoor 授权端点
+- [x] 引入 `oidc-client-ts`（或 `casdoor-js-sdk`），授权码 + PKCE
+- [x] 新增 `/callback` 路由页
+- [x] 改 `src/store/auth.ts`：`currentUser` 从已验证 token 的角色 claim 解析；保留 `useAuth` 接口形态
+- [x] 未登录重定向到 Casdoor 授权端点
 
 后端：
-- [ ] JWKS 验签中间件（复用 `python-jose`）
-- [ ] 从 claims 解析用户 + 角色，映射到 `Role`
-- [ ] 受保护接口按角色鉴权
-- [ ] 确认角色 claim 的确切字段名/结构，固化映射（见第 5 节）
+- [x] JWKS 验签中间件（复用 `python-jose`）
+- [x] 从 claims 解析用户 + 角色，映射到 `Role`
+- [x] 受保护接口按角色鉴权
+- [x] 确认角色 claim 的确切字段名/结构，固化映射（见第 5 节）
+
+  **已确认 token claim 形状（RS256，JWKS 验签通过）：**
+  - `iss` = `http://localhost:8000`
+  - `aud` = `["mppm-client-id-0001"]`（数组）
+  - 身份：`name` claim 存放用户名（如 `guo.cmc`）；**`preferred_username` 不存在**，后端取 `name`
+  - 角色：`roles` claim 为角色**对象数组**，例如 `[{"owner":"mabpharm","name":"cmc_lead","displayName":"CMC 负责人",...}]`；后端取 `roles[0].name`（无 flat `role` 字段）
 
 ## 5. 变更记录
 
@@ -91,3 +97,4 @@
 |---|---|---|
 | 2026-06-28 | 初始档案 | 角色/权限矩阵取自 mp-pm 当前代码；OIDC 配置待 P4 落地核对 |
 | 2026-06-28 | OIDC 应用注册（P3a） | 在 Casdoor 注册 mp-pm 应用（init_data.json），clientId=mppm-client-id-0001，PKCE 授权码流程，回调 http://localhost:5175/callback |
+| 2026-06-28 | 端到端联调通过（P4c） | 端到端接入联调通过；确认 token 角色 claim 形状（roles 数组对象，取 roles[].name；身份取 name claim）；负向 RBAC 验证：rd→403，无 token/篡改 token→401 |
