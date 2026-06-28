@@ -47,5 +47,21 @@
         { "name": "Password", "displayName": "Password", "rule": "All" }
       ]
     }
+  ],
+  "roles": [
+    { "owner": "mabpharm", "name": "admin",        "displayName": "系统管理员", "users": ["mabpharm/admin"],     "roles": [], "isEnabled": true },
+    { "owner": "mabpharm", "name": "cmc_lead",     "displayName": "CMC 负责人", "users": ["mabpharm/guo.cmc"],   "roles": [], "isEnabled": true },
+    { "owner": "mabpharm", "name": "project_lead", "displayName": "项目负责人", "users": ["mabpharm/li.pm1"],    "roles": [], "isEnabled": true },
+    { "owner": "mabpharm", "name": "rd",           "displayName": "工艺开发",   "users": ["mabpharm/liu.usp1"],  "roles": [], "isEnabled": true },
+    { "owner": "mabpharm", "name": "production",   "displayName": "生产支持",   "users": ["mabpharm/mao.prod1"], "roles": [], "isEnabled": true },
+    { "owner": "mabpharm", "name": "qa_qc",        "displayName": "QA/QC",     "users": ["mabpharm/qa.zhao"],   "roles": [], "isEnabled": true }
+  ],
+  "users": [
+    { "owner": "mabpharm", "name": "admin",     "type": "normal-user", "password": "Maibo@2026", "displayName": "张管理", "email": "admin@mabpharm.com",     "isAdmin": true,  "signupApplication": "mp-pm" },
+    { "owner": "mabpharm", "name": "guo.cmc",   "type": "normal-user", "password": "Maibo@2026", "displayName": "郭主任", "email": "guo.cmc@mabpharm.com",   "isAdmin": false, "signupApplication": "mp-pm" },
+    { "owner": "mabpharm", "name": "li.pm1",    "type": "normal-user", "password": "Maibo@2026", "displayName": "李项目", "email": "li.pm1@mabpharm.com",    "isAdmin": false, "signupApplication": "mp-pm" },
+    { "owner": "mabpharm", "name": "liu.usp1",  "type": "normal-user", "password": "Maibo@2026", "displayName": "刘上游", "email": "liu.usp1@mabpharm.com",  "isAdmin": false, "signupApplication": "mp-pm" },
+    { "owner": "mabpharm", "name": "mao.prod1", "type": "normal-user", "password": "Maibo@2026", "displayName": "毛生产", "email": "mao.prod1@mabpharm.com", "isAdmin": false, "signupApplication": "mp-pm" },
+    { "owner": "mabpharm", "name": "qa.zhao",   "type": "normal-user", "password": "Maibo@2026", "displayName": "赵质量", "email": "qa.zhao@mabpharm.com",   "isAdmin": false, "signupApplication": "mp-pm" }
   ]
 }
