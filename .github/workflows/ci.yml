@@ -1,0 +1,66 @@
+name: CI
+
+# mb-casd 是 Casdoor 定制化「配置 + 数据 + 资产」仓（不 fork 源码），
+# 故 CI 不编译代码，只做两类轻量护栏：
+#   1) validate —— 配置/种子数据语法可解析（init_data.json 合法 JSON、docker-compose 可渲染）
+#   2) guard    —— 红线检查（密钥文件未被提交、镜像钉死版本号不用 latest）
+# 触发：对 main 的 PR 与推送。如需真正阻断合并，在 GitHub → Settings → Branches
+# 为 main 加分支保护，把 validate / guard 设为 Required。
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: 校验 · 配置与种子数据
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: init_data.json 是合法 JSON
+        run: |
+          python3 -c "import json; json.load(open('init_data/init_data.json')); print('init_data.json: valid JSON')"
+
+      - name: docker-compose.yml 可渲染（含变量替换）
+        run: |
+          # 用示例环境变量做替换；compose config 只校验配置本身，不要求 bind-mount 源存在。
+          cp .env.example .env
+          docker compose config -q
+          echo "docker-compose.yml: OK"
+
+  guard:
+    name: 护栏 · 红线检查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 禁止提交真实密钥文件（仅允许 *.example）
+        run: |
+          # .env / .env.* / conf/app.conf 含真实凭证，必须 gitignore；仓库只放 .example。
+          tracked_secrets=$(git ls-files | grep -E '(^\.env($|\.)|^conf/app\.conf$)' | grep -v '\.example$' || true)
+          if [ -n "$tracked_secrets" ]; then
+            echo "::error::发现被跟踪的密钥文件，应仅提交 .example 版本："
+            echo "$tracked_secrets"
+            exit 1
+          fi
+          echo "no tracked secret files"
+
+      - name: 镜像必须钉死版本（禁用 :latest）
+        run: |
+          # 红线：镜像钉死具体版本号（可复现 + 可控升级），不用 latest。
+          if grep -nE 'image:[[:space:]]*[^[:space:]]+:latest([[:space:]]|$)' docker-compose.yml; then
+            echo "::error::docker-compose.yml 使用了 :latest，应钉死具体版本号"
+            exit 1
+          fi
+          if grep -nE '^[[:space:]]*CASDOOR_TAG=latest([[:space:]]|$)' .env.example; then
+            echo "::error::.env.example 的 CASDOOR_TAG=latest，应写死具体版本号"
+            exit 1
+          fi
+          echo "images pinned OK"
