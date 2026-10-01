@@ -7,6 +7,13 @@
 1. `cp .env.example .env` 并填写口令与 `CASDOOR_TAG`
 2. `docker compose up -d`
 3. 管理台：http://localhost:8000 （内置 admin，首次请改口令）
+4. **加固（每次部署后必做）**：关闭内置应用 `app-built-in` 的公开注册（built-in 组织用户即全局管理员，见 ADR-0002）
+
+   ```bash
+   export CASDOOR_ENDPOINT=http://127.0.0.1:8000 CASDOOR_CLIENT_ID=... CASDOOR_CLIENT_SECRET=...
+   python3 scripts/harden.py --backup-dir ./backups
+   python3 scripts/harden.py --check   # 已加固时退出码 0
+   ```
 
 ## 接入上层应用
 
@@ -24,3 +31,4 @@
 
 - 设计 spec：`docs/superpowers/specs/2026-06-28-mb-casd-iam-design.md`
 - CDN/内网取舍：`docs/decisions/0001-static-assets-cdn.md`
+- 关闭内置应用公开注册：`docs/decisions/0002-disable-builtin-signup.md`
