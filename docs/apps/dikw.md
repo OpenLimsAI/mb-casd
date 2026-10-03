@@ -21,7 +21,7 @@
 | 回调 URI | `https://kb.openlims.ai/web/auth/callback` |
 | 登出回跳 | `https://kb.openlims.ai/`（RP-initiated logout 走 Casdoor `/api/logout`） |
 | Issuer（公网） | `https://iam.openlims.ai` |
-| 服务端内网地址 | `http://casdoor:8000`（dikw-web 接入 `mb-pm-v2_internal` 网络；服务器访问不了公网 iam.openlims.ai） |
+| 服务端访问 IdP | 经同名代理 `iam-proxy`（服务器 `~/iam-proxy`）：服务器访问不了公网 iam.openlims.ai，dikw-web 在专用网络 `iam-oidc` 上把 `iam.openlims.ai` 解析到代理，代理用自建 CA 提供 https，只放行 discovery、JWKS、token、userinfo、introspect，转发到 `casdoor:8000`。dikw-web 不再直连 Casdoor，也不再使用 `DIKW_WEB_OIDC_INTERNAL_URL` |
 | clientId / clientSecret | 只在服务器 `~/dikw/.env`（`DIKW_WEB_OIDC_CLIENT_ID` / `DIKW_WEB_OIDC_CLIENT_SECRET`），不入库 |
 
 > 应用配置以 `mp-pm` 应用为模板克隆（字段齐全），改了名称、回调、client 凭据和 grantTypes。
@@ -67,3 +67,4 @@
 | 2026-10-03 | 开启 refresh token | `grantTypes` 加 `refresh_token`，`refreshExpireInHours` 0 → 168；dikw-web 会话变为闲置 8 小时 / 最长 7 天，角色约 15 分钟同步。改前配置快照在服务器 `~/mb-pm-v2/private-config-backups/20261003T064742Z-dikw-refresh/` |
 | 2026-10-03 | 删除应用 `admin/mb-kb` | 同事为 kb.openlims.ai 网关（kb-gateway）建的应用（回调 `/auth/callback`、`/login`）；dikw-web 原生 OIDC 取代该网关后删除，无关联角色 / 权限 / 用户。快照 `~/mb-pm-v2/private-config-backups/20261003T084502Z-mb-kb-delete/` |
 | 2026-10-03 | 域名迁到 kb.openlims.ai | `redirectUris` 改为 `https://kb.openlims.ai/web/auth/callback`、`https://kb.openlims.ai/`，删除 `maibo-dikw.i-am-holo.top` 的两条；`homepageUrl` 改为 `https://kb.openlims.ai`。快照 `~/mb-pm-v2/private-config-backups/20261003T083815Z-dikw-kb-domain/`、`20261003T094930Z-dikw-kb-cutover/` |
+| 2026-10-03 | 服务端改走 iam-proxy | 新增同名代理 `~/iam-proxy`（Caddy，自建 CA，专用网络 `iam-oidc`，只放行 5 个服务端 OIDC 路径）；dikw-web 去掉内网地址配置、退出 `mb-pm-v2_internal`。Casdoor 应用配置不变。discovery、续期换 token、JWKS 验签均已验证。后续 managed-agent console / platform 接入 IAM 复用此代理 |
