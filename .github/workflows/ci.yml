@@ -35,6 +35,15 @@ jobs:
           docker compose config -q
           echo "docker-compose.yml: OK"
 
+      - name: iam-proxy 配置可渲染（compose + Caddyfile）
+        run: |
+          # 外部网络无需存在：compose config 只校验配置。Caddyfile 用 compose 里钉死的同一镜像校验。
+          docker compose -f deploy/iam-proxy/docker-compose.yml config -q
+          image=$(docker compose -f deploy/iam-proxy/docker-compose.yml config --images)
+          docker run --rm --network none -v "$PWD/deploy/iam-proxy/Caddyfile:/etc/caddy/Caddyfile:ro" \
+            "$image" caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          echo "deploy/iam-proxy: OK ($image)"
+
   guard:
     name: 护栏 · 红线检查
     runs-on: ubuntu-latest
@@ -55,10 +64,13 @@ jobs:
       - name: 镜像必须钉死版本（禁用 :latest）
         run: |
           # 红线：镜像钉死具体版本号（可复现 + 可控升级），不用 latest。
-          if grep -nE 'image:[[:space:]]*[^[:space:]]+:latest([[:space:]]|$)' docker-compose.yml; then
-            echo "::error::docker-compose.yml 使用了 :latest，应钉死具体版本号"
-            exit 1
-          fi
+          # 覆盖仓库里所有 compose 文件（根目录 + deploy/*）。
+          for f in $(git ls-files 'docker-compose.yml' '*/docker-compose.yml'); do
+            if grep -nE 'image:[[:space:]]*[^[:space:]]+:latest([[:space:]]|$)' "$f"; then
+              echo "::error::$f 使用了 :latest，应钉死具体版本号"
+              exit 1
+            fi
+          done
           if grep -nE '^[[:space:]]*CASDOOR_TAG=latest([[:space:]]|$)' .env.example; then
             echo "::error::.env.example 的 CASDOOR_TAG=latest，应写死具体版本号"
             exit 1

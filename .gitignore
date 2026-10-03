@@ -6,6 +6,9 @@
 # app.conf contains inlined DB credentials (beego v3.100.0 does not expand ${VAR} in app.conf)
 conf/app.conf
 
+# iam-proxy: per-host CA root exported on the server (deploy/iam-proxy/README.md)
+deploy/iam-proxy/ca/
+
 # Postgres / docker local data
 pgdata/
 data/

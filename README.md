@@ -32,3 +32,8 @@
 - 设计 spec：`docs/superpowers/specs/2026-06-28-mb-casd-iam-design.md`
 - CDN/内网取舍：`docs/decisions/0001-static-assets-cdn.md`
 - 关闭内置应用公开注册：`docs/decisions/0002-disable-builtin-signup.md`
+- 服务端 OIDC 调用走同名 TLS 代理：`docs/decisions/0003-server-side-oidc-via-iam-proxy.md`
+
+## 部署机上的 iam-proxy
+
+部署机访问不了公网 `iam.openlims.ai`，上层应用的服务端 OIDC 调用（discovery / token / JWKS）经同名 TLS 代理走内网。部署和接入方法见 [`deploy/iam-proxy/README.md`](deploy/iam-proxy/README.md)。
