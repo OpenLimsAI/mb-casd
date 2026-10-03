@@ -3,8 +3,8 @@
 > 每个接入 IAM 中台的上层应用一份本档案，作为该应用 OIDC 配置与 RBAC 的**单一变更跟踪源**。
 
 - 应用：[OpenDIKW](https://github.com/OpenDIKW) 知识库 —— dikw-core（知识引擎）+ dikw-web（Web 界面，OIDC 鉴权在 dikw-web 内实现）
-- 鉴权实现：dikw-web 0.10.0 起的 OIDC / BFF 模式（[OpenDIKW/dikw-web#200](https://github.com/OpenDIKW/dikw-web/issues/200)，设计见该仓库 `docs/adr/0006-oidc-auth-bff.md`）
-- 部署：maibo-prometheus 服务器 `~/dikw/`（服务 `dikw-core-v06` / `dikw-web-v06`），运维文档见 maibo 仓库 `docs/dikw-deploy.md`
+- 鉴权实现：dikw-web 0.10.0 起的 OIDC / BFF 模式，当前运行 0.11.0（[OpenDIKW/dikw-web#200](https://github.com/OpenDIKW/dikw-web/issues/200)，设计见该仓库 `docs/adr/0006-oidc-auth-bff.md`）
+- 部署：maibo-prometheus 服务器 `~/dikw/`（服务 `dikw-core` / `dikw-web`），运维文档见 maibo 仓库 `docs/dikw-deploy.md`
 - 接入状态：**生产运行**（2026-10-03 切换）
 
 ## 1. OIDC 客户端配置（Casdoor `application = admin/dikw-kb`）
@@ -14,7 +14,7 @@
 | 组织 | `mabpharm` |
 | 应用名 / 显示名 | `dikw-kb` / 迈博知识库 |
 | 协议 | OIDC，授权码 + PKCE（S256），`state` / `nonce` 校验 |
-| `grantTypes` | `authorization_code`（不需要 refresh token：dikw-web 会话绝对有效期 8 小时） |
+| `grantTypes` | `authorization_code`（暂不发 refresh token，dikw-web 会话固定 8 小时；dikw-web 0.11.0 起支持续期，需要时加开 `refresh_token` 并设置非 0 的 `refreshExpireInHours`，无需 `offline_access`） |
 | `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1` |
 | 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
 | 回调 URI | `https://maibo-dikw.i-am-holo.top/web/auth/callback` |
@@ -60,3 +60,4 @@
 | 2026-10-03 | 应用注册 + 角色 | 新建应用 `admin/dikw-kb`（克隆自 mp-pm）；新建角色 `kb_editor`（guo.admin）、`kb_viewer`（guo.cmc）。改动前角色快照在服务器 `~/mb-pm-v2/private-config-backups/20261003T033822Z-dikw-oidc/` |
 | 2026-10-03 | 验收（SSH 隧道） | 临时登记 `http://localhost:18090` 回调做验收；测试账号 `mabpharm/hele.hl`：editor（登录、Settings 无 token 输入、旧会话归属、agent 走服务端 token、Import 可用）与 viewer（编辑类接口 403、Import 隐藏、检索/对话可用）均通过 |
 | 2026-10-03 | 生产切换 | 回调改为正式域名，删除 localhost 回调；`hele.hl` 留作管理员个人账号（kb_editor）；Cloudflare Access 删除，人侧鉴权完全由 IAM 承担 |
+| 2026-10-03 | dikw-web 升级 0.11.0 | 客户端配置不变；新版本支持 refresh token 续期与角色同步（本应用暂未开启 `refresh_token` 授权） |
