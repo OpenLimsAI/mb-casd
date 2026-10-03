@@ -23,6 +23,7 @@ docker-compose.yml   casdoor + postgres
 conf/app.conf        挂载到容器 /conf/app.conf
 init_data/           init_data.json（组织/应用/证书/RBAC/管理员种子）
 assets/              迈博 logo / favicon / 登录页 CSS
+deploy/iam-proxy/    部署机上的同名 TLS 代理（应用服务端 OIDC 调用走内网，ADR-0003）
 docs/apps/<app>.md   每个接入应用一份档案（OIDC 配置 + 角色 + 权限矩阵 + 变更记录）
 docs/decisions/      ADR（架构/取舍决策记录）
 docs/superpowers/specs/   设计 spec

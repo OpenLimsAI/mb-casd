@@ -1,0 +1,39 @@
+{
+	admin off
+	auto_https disable_redirects
+	skip_install_trust
+	pki {
+		ca local {
+			name "maibo iam-proxy local CA"
+		}
+	}
+}
+
+# 只放行服务端 OIDC 调用：discovery、JWKS、token、userinfo、introspection。
+# 浏览器侧端点（authorize、logout）、动态注册、设备授权以及 Casdoor 其余 API / 管理台
+# 都不经这个名字暴露。新应用需要别的服务端端点时，先在 ADR-0003 / README 里说明再加。
+iam.openlims.ai {
+	tls internal
+	@oidc path /.well-known/openid-configuration /.well-known/jwks /api/login/oauth/access_token /api/userinfo /api/login/oauth/introspect
+	handle @oidc {
+		reverse_proxy casdoor:8000 {
+			header_up Host iam.openlims.ai
+		}
+	}
+	handle {
+		respond 404
+	}
+	log
+}
+
+# 容器健康检查：仅回环，经代理确认 Casdoor 可达。
+:8080 {
+	bind 127.0.0.1
+	handle /healthz {
+		rewrite * /.well-known/openid-configuration
+		reverse_proxy casdoor:8000
+	}
+	handle {
+		respond 404
+	}
+}

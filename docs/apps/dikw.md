@@ -21,7 +21,7 @@
 | 回调 URI | `https://kb.openlims.ai/web/auth/callback` |
 | 登出回跳 | `https://kb.openlims.ai/`（RP-initiated logout 走 Casdoor `/api/logout`） |
 | Issuer（公网） | `https://iam.openlims.ai` |
-| 服务端访问 IdP | 经同名代理 `iam-proxy`（服务器 `~/iam-proxy`）：服务器访问不了公网 iam.openlims.ai，dikw-web 在专用网络 `iam-oidc` 上把 `iam.openlims.ai` 解析到代理，代理用自建 CA 提供 https，只放行 discovery、JWKS、token、userinfo、introspect，转发到 `casdoor:8000`。dikw-web 不再直连 Casdoor，也不再使用 `DIKW_WEB_OIDC_INTERNAL_URL` |
+| 服务端访问 IdP | 经同名代理 `iam-proxy`（服务器 `~/iam-proxy`，配置与接入方法见 [`deploy/iam-proxy/`](../../deploy/iam-proxy/README.md)，取舍见 ADR-0003）：服务器访问不了公网 iam.openlims.ai，dikw-web 在专用网络 `iam-oidc` 上把 `iam.openlims.ai` 解析到代理，代理用自建 CA 提供 https，只放行 discovery、JWKS、token、userinfo、introspect，转发到 `casdoor:8000`。dikw-web 不再直连 Casdoor，也不再使用 `DIKW_WEB_OIDC_INTERNAL_URL` |
 | clientId / clientSecret | 只在服务器 `~/dikw/.env`（`DIKW_WEB_OIDC_CLIENT_ID` / `DIKW_WEB_OIDC_CLIENT_SECRET`），不入库 |
 
 > 应用配置以 `mp-pm` 应用为模板克隆（字段齐全），改了名称、回调、client 凭据和 grantTypes。
