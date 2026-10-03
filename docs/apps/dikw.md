@@ -17,8 +17,9 @@
 | `grantTypes` | `authorization_code`、`refresh_token`（dikw-web ≥ 0.11.0 用 refresh token 续期会话并同步角色；无需 `offline_access`） |
 | `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1`，`refreshExpireInHours: 168` |
 | 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
-| 回调 URI | `https://maibo-dikw.i-am-holo.top/web/auth/callback` |
-| 登出回跳 | `https://maibo-dikw.i-am-holo.top/`（RP-initiated logout 走 Casdoor `/api/logout`） |
+| 访问地址 | `https://kb.openlims.ai`（2026-10-03 起；旧域名 `maibo-dikw.i-am-holo.top` 已停用） |
+| 回调 URI | `https://kb.openlims.ai/web/auth/callback` |
+| 登出回跳 | `https://kb.openlims.ai/`（RP-initiated logout 走 Casdoor `/api/logout`） |
 | Issuer（公网） | `https://iam.openlims.ai` |
 | 服务端内网地址 | `http://casdoor:8000`（dikw-web 接入 `mb-pm-v2_internal` 网络；服务器访问不了公网 iam.openlims.ai） |
 | clientId / clientSecret | 只在服务器 `~/dikw/.env`（`DIKW_WEB_OIDC_CLIENT_ID` / `DIKW_WEB_OIDC_CLIENT_SECRET`），不入库 |
@@ -48,7 +49,7 @@
 | ingest / synth / eval、lint propose / apply、取消任务、写 wisdom | | ✓ |
 | 确认 agent 维护提案 | | ✓ |
 
-未列出的 dikw-core 写接口一律只给 editor。所有写请求要求 `Origin` 与 `https://maibo-dikw.i-am-holo.top` 完全一致（CSRF）。
+未列出的 dikw-core 写接口一律只给 editor。所有写请求要求 `Origin` 与 `https://kb.openlims.ai` 完全一致（CSRF）。
 
 ## 4. 其他约定
 
@@ -64,3 +65,5 @@
 | 2026-10-03 | 生产切换 | 回调改为正式域名，删除 localhost 回调；`hele.hl` 留作管理员个人账号（kb_editor）；Cloudflare Access 删除，人侧鉴权完全由 IAM 承担 |
 | 2026-10-03 | dikw-web 升级 0.11.0 | 客户端配置不变；新版本支持 refresh token 续期与角色同步 |
 | 2026-10-03 | 开启 refresh token | `grantTypes` 加 `refresh_token`，`refreshExpireInHours` 0 → 168；dikw-web 会话变为闲置 8 小时 / 最长 7 天，角色约 15 分钟同步。改前配置快照在服务器 `~/mb-pm-v2/private-config-backups/20261003T064742Z-dikw-refresh/` |
+| 2026-10-03 | 删除应用 `admin/mb-kb` | 同事为 kb.openlims.ai 网关（kb-gateway）建的应用（回调 `/auth/callback`、`/login`）；dikw-web 原生 OIDC 取代该网关后删除，无关联角色 / 权限 / 用户。快照 `~/mb-pm-v2/private-config-backups/20261003T084502Z-mb-kb-delete/` |
+| 2026-10-03 | 域名迁到 kb.openlims.ai | `redirectUris` 改为 `https://kb.openlims.ai/web/auth/callback`、`https://kb.openlims.ai/`，删除 `maibo-dikw.i-am-holo.top` 的两条；`homepageUrl` 改为 `https://kb.openlims.ai`。快照 `~/mb-pm-v2/private-config-backups/20261003T083815Z-dikw-kb-domain/`、`20261003T094930Z-dikw-kb-cutover/` |
