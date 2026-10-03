@@ -14,8 +14,8 @@
 | 组织 | `mabpharm` |
 | 应用名 / 显示名 | `dikw-kb` / 迈博知识库 |
 | 协议 | OIDC，授权码 + PKCE（S256），`state` / `nonce` 校验 |
-| `grantTypes` | `authorization_code`（暂不发 refresh token，dikw-web 会话固定 8 小时；dikw-web 0.11.0 起支持续期，需要时加开 `refresh_token` 并设置非 0 的 `refreshExpireInHours`，无需 `offline_access`） |
-| `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1` |
+| `grantTypes` | `authorization_code`、`refresh_token`（dikw-web ≥ 0.11.0 用 refresh token 续期会话并同步角色；无需 `offline_access`） |
+| `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1`，`refreshExpireInHours: 168` |
 | 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
 | 回调 URI | `https://maibo-dikw.i-am-holo.top/web/auth/callback` |
 | 登出回跳 | `https://maibo-dikw.i-am-holo.top/`（RP-initiated logout 走 Casdoor `/api/logout`） |
@@ -24,6 +24,8 @@
 | clientId / clientSecret | 只在服务器 `~/dikw/.env`（`DIKW_WEB_OIDC_CLIENT_ID` / `DIKW_WEB_OIDC_CLIENT_SECRET`），不入库 |
 
 > 应用配置以 `mp-pm` 应用为模板克隆（字段齐全），改了名称、回调、client 凭据和 grantTypes。
+>
+> ⚠️ **`refresh_token` 授权不能关**：Casdoor 3.100 的授权码响应总会带 `refresh_token`（不看应用是否开了该授权），dikw-web 拿到就按可续期会话处理，每约 15 分钟续期一次；授权一关，续期被拒（`unsupported_grant_type`），所有人登录 15 分钟后被登出。`refreshExpireInHours` 也不要设回 0（0 表示与 access token 同为 1 小时，闲置超过 1 小时续期就会失败）。
 
 ## 2. 角色（Casdoor 角色名 ⇄ dikw-web 权限级别）
 
@@ -34,7 +36,7 @@
 
 - dikw-web 读取方式：`DIKW_WEB_OIDC_ROLES_CLAIM=roles[].name`，`DIKW_WEB_OIDC_ROLES_OWNER=mabpharm`（只认本组织、`isEnabled` 的角色对象）；`DIKW_WEB_ROLE_EDITOR=kb_editor`，`DIKW_WEB_ROLE_VIEWER=kb_viewer`。editor 包含 viewer。
 - **与 mp-pm 共存**：mp-pm 只认自己的 6 个角色名并要求恰好一个，`kb_*` 不在其集合内会被忽略 —— 同一用户可同时持有一个 PM 角色和一个 kb 角色。新增知识库角色时**不要**与 PM 角色重名。
-- 没有任何 kb 角色的已登录用户会看到「无访问权限」页面。角色变更在下次登录生效。
+- 没有任何 kb 角色的已登录用户会看到「无访问权限」页面。角色变更在下次续期时同步（约 15 分钟内），不需要重新登录。
 
 ## 3. 权限矩阵（dikw-web 服务端强制）
 
@@ -60,4 +62,5 @@
 | 2026-10-03 | 应用注册 + 角色 | 新建应用 `admin/dikw-kb`（克隆自 mp-pm）；新建角色 `kb_editor`（guo.admin）、`kb_viewer`（guo.cmc）。改动前角色快照在服务器 `~/mb-pm-v2/private-config-backups/20261003T033822Z-dikw-oidc/` |
 | 2026-10-03 | 验收（SSH 隧道） | 临时登记 `http://localhost:18090` 回调做验收；测试账号 `mabpharm/hele.hl`：editor（登录、Settings 无 token 输入、旧会话归属、agent 走服务端 token、Import 可用）与 viewer（编辑类接口 403、Import 隐藏、检索/对话可用）均通过 |
 | 2026-10-03 | 生产切换 | 回调改为正式域名，删除 localhost 回调；`hele.hl` 留作管理员个人账号（kb_editor）；Cloudflare Access 删除，人侧鉴权完全由 IAM 承担 |
-| 2026-10-03 | dikw-web 升级 0.11.0 | 客户端配置不变；新版本支持 refresh token 续期与角色同步（本应用暂未开启 `refresh_token` 授权） |
+| 2026-10-03 | dikw-web 升级 0.11.0 | 客户端配置不变；新版本支持 refresh token 续期与角色同步 |
+| 2026-10-03 | 开启 refresh token | `grantTypes` 加 `refresh_token`，`refreshExpireInHours` 0 → 168；dikw-web 会话变为闲置 8 小时 / 最长 7 天，角色约 15 分钟同步。改前配置快照在服务器 `~/mb-pm-v2/private-config-backups/20261003T064742Z-dikw-refresh/` |
