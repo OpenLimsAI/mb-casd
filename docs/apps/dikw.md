@@ -18,6 +18,7 @@
 | `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1`，`refreshExpireInHours: 168` |
 | 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
 | 访问地址 | `https://kb.openlims.ai`（2026-10-03 起；旧域名 `maibo-dikw.i-am-holo.top` 已停用） |
+| 主页地址（`homepageUrl`） | `https://kb.openlims.ai/#mb-web`：IAM 应用列表的入口直接打开论文知识库（MB-Web）；管理工作台在根地址 |
 | 回调 URI | `https://kb.openlims.ai/web/auth/callback` |
 | 登出回跳 | `https://kb.openlims.ai/`（RP-initiated logout 走 Casdoor `/api/logout`） |
 | Issuer（公网） | `https://iam.openlims.ai` |
@@ -68,3 +69,4 @@
 | 2026-10-03 | 删除应用 `admin/mb-kb` | 同事为 kb.openlims.ai 网关（kb-gateway）建的应用（回调 `/auth/callback`、`/login`）；dikw-web 原生 OIDC 取代该网关后删除，无关联角色 / 权限 / 用户。快照 `~/mb-pm-v2/private-config-backups/20261003T084502Z-mb-kb-delete/` |
 | 2026-10-03 | 域名迁到 kb.openlims.ai | `redirectUris` 改为 `https://kb.openlims.ai/web/auth/callback`、`https://kb.openlims.ai/`，删除 `maibo-dikw.i-am-holo.top` 的两条；`homepageUrl` 改为 `https://kb.openlims.ai`。快照 `~/mb-pm-v2/private-config-backups/20261003T083815Z-dikw-kb-domain/`、`20261003T094930Z-dikw-kb-cutover/` |
 | 2026-10-03 | 服务端改走 iam-proxy | 新增同名代理 `~/iam-proxy`（Caddy，自建 CA，专用网络 `iam-oidc`，只放行 5 个服务端 OIDC 路径）；dikw-web 去掉内网地址配置、退出 `mb-pm-v2_internal`。Casdoor 应用配置不变。discovery、续期换 token、JWKS 验签均已验证。后续 managed-agent console / platform 接入 IAM 复用此代理 |
+| 2026-10-04 | 入口默认打开论文知识库 | `homepageUrl` 改为 `https://kb.openlims.ai/#mb-web`；mb-pm 的 www 工作台与「相关系统 → 知识库」同步改为该地址（OpenLimsAI/mb-pm#14，已上线）。未登录时 dikw-web 登录会保留 `#mb-web`。快照 `~/mb-pm-v2/private-config-backups/20261004T150856Z-dikw-kb-homepage/` |
