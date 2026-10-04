@@ -14,7 +14,7 @@ IAM 的公网地址 `https://iam.openlims.ai` 经 Cloudflare 隧道发布，Casd
   │  https，证书由 iam-proxy 的自建 CA 签发，应用信任其根证书
   ▼
 iam-proxy（Caddy）── 只放行 5 个服务端 OIDC 路径，其余 404
-  │  经 mb-pm-v2_internal
+  │  经主机级共享网络 edge
   ▼
 casdoor:8000
 ```
@@ -36,7 +36,7 @@ docker exec iam-proxy cat /data/caddy/pki/authorities/local/root.crt > ca/root.c
 chmod 644 ca/root.crt
 ```
 
-依赖 mb-pm-v2 栈创建的外部网络 `mb-pm-v2_internal`（Casdoor 所在网络）。`ca/` 是每台机器各自的 CA，不入库（已 gitignore）。
+依赖主机级共享网络 `edge`（首次部署前 `docker network create edge`，不归任何栈所有；mb-pm 的 `compose.production.yml` 让 `casdoor` 加入它）。`ca/` 是每台机器各自的 CA，不入库（已 gitignore）。
 
 ## 接入一个应用
 
@@ -63,20 +63,21 @@ networks:
 - **Node**（如 dikw-web、managed-agent console）：`NODE_EXTRA_CA_CERTS` 是追加，不影响访问其他网站。
 - **Go**（如 managed-agent platform）：`SSL_CERT_FILE` 会**替换**默认根证书列表。只放本 CA 会让该进程访问其他 https 站点（外部 MCP、vault 校验等）全部失败，要准备「系统根证书 + 本 CA」的合并文件，例如 `cat /etc/ssl/certs/ca-certificates.crt ca/root.crt > ca/bundle.crt`。
 - 只挂 `root.crt`，**不要**挂 `caddy-data` 卷（里面有 CA 私钥）。
-- 应用如果原来为了连 Casdoor 加入了 `mb-pm-v2_internal`，接入后可以退出，这样容器里解析不到 `casdoor`，能证明只走代理。
+- 应用不要为了连 Casdoor 加入 `mb-pm-v2_internal` 或 `edge`：只接 `iam-oidc`，容器里解析不到 `casdoor`，能证明只走代理。
 
 接入后验证：应用日志无鉴权配置错误；`docker logs iam-proxy`（JSON 访问日志）里能看到该应用 IP 对 discovery / token / JWKS 的 200；完整走一次登录或会话续期。
 
 ## 红线
 
-- **别名只放在 `iam-oidc` 上。** Docker 网络别名对同网络所有容器生效；放到 `mb-pm-v2_internal` 这类共享网络，会把 mp-pm 等对 `iam.openlims.ai` 的访问劫持到自签证书上，它们不信任这个 CA，登录直接失败。
+- **别名只放在 `iam-oidc` 上。** Docker 网络别名对同网络所有容器生效；放到 `edge`、`mb-pm-v2_internal` 这类共享网络，会把 mp-pm 等对 `iam.openlims.ai` 的访问劫持到自签证书上，它们不信任这个 CA，登录直接失败。
 - 白名单只增不随手开：新应用需要别的服务端端点时，先说明用途再改 Caddyfile。
 
 ## 运维
 
 | 场景 | 处理 |
 |---|---|
-| mb-pm-v2 被 `compose down` / `up`，`mb-pm-v2_internal` 重建 | `cd ~/iam-proxy && docker compose up -d --force-recreate` 重新接上 |
+| mb-pm-v2 被 `compose down` / `up` | 无需处理：`edge` 是主机级网络，不随 PM 栈重建；casdoor 重建后按服务名重新解析 |
+| `edge` 网络被误删 | `docker network create edge`，再依次 `up -d` 各个接入它的栈（mb-pm-v2、dikw 的 caddy、iam-proxy） |
 | `caddy-data` 卷丢失 | 启动后会生成**新 CA**：重新导出 `ca/root.crt`，并重启所有使用方 |
 | 证书轮换 | 根证书有效期 10 年；中间证书和叶子证书由 Caddy 自动轮换，使用方只信任根证书，无需操作 |
 | 排查 | `docker logs iam-proxy`；注意容器里的 `iam.openlims.ai` 不是公网那个 |

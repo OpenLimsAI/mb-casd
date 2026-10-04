@@ -22,14 +22,14 @@ OIDC 授权码流程里，浏览器跳转不受影响，但以下调用由**应�
 
 在部署机上运行**同名 TLS 代理** `iam-proxy`（配置见 `deploy/iam-proxy/`）：
 
-1. Caddy 用自建 CA（`tls internal`）给 `iam.openlims.ai` 签证书，在专用的 `internal` 网络 `iam-oidc` 上以别名 `iam.openlims.ai` 提供 https，经 `mb-pm-v2_internal` 转发到 `casdoor:8000`。
+1. Caddy 用自建 CA（`tls internal`）给 `iam.openlims.ai` 签证书，在专用的 `internal` 网络 `iam-oidc` 上以别名 `iam.openlims.ai` 提供 https，经主机级共享网络 `edge` 转发到 `casdoor:8000`（2026-10-04 起；最初经 `mb-pm-v2_internal`）。
 2. 只放行服务端 OIDC 路径：discovery、JWKS、token、userinfo、introspection。其余一律 404。
 3. 上层应用加入 `iam-oidc`，只读挂载 CA 根证书并信任它，issuer 照常配置为公网值。应用侧不需要任何「内网地址」配置项。
 
 ## 备选方案
 
 - **每个应用各自加「内网地址」配置项**：要等每个应用实现并发版（console 目前没有）；内网段通常是明文 http；platform 本来就强制 https JWKS，仍然需要 TLS 代理。不采用。dikw-web 已有的配置项保留不用。
-- **把别名放在共享网络 `mb-pm-v2_internal` 上**（省一张网）：Docker 网络别名对同网所有容器生效，新 PM 等容器对 `iam.openlims.ai` 的访问会被劫持到自签证书上，它们不信任这个 CA，登录会直接失败。否决。
+- **把别名放在共享网络 `mb-pm-v2_internal` 或 `edge` 上**（省一张网）：Docker 网络别名对同网所有容器生效，新 PM 等容器对 `iam.openlims.ai` 的访问会被劫持到自签证书上，它们不信任这个 CA，登录会直接失败。否决。
 - **修好部署机到 Cloudflare 的出网**（出网代理 / 换线路）：能从根上解决，但不在本仓库可控范围内，成本也高。如果以后解决了，可以撤掉代理，应用改回直连公网。
 
 ## 后果
@@ -45,7 +45,7 @@ OIDC 授权码流程里，浏览器跳转不受影响，但以下调用由**应�
 - 同名解析有理解成本：容器里的 `iam.openlims.ai` 不是公网那个，排查时要知道这一点（README 已写明）。
 - 多一个组件和一个 CA 要维护：`caddy-data` 卷丢失会生成新 CA，要重新分发根证书并重启各使用方。
 - Go 应用的 `SSL_CERT_FILE` 会替换系统根证书，需要准备「系统根证书 + 本 CA」的合并文件。
-- 依赖 `mb-pm-v2_internal`：mb-pm-v2 重建网络后，代理要重新接上。
+- 依赖主机级网络 `edge`（casdoor 由 mb-pm 的生产 compose 接入）。2026-10-04 之前依赖 `mb-pm-v2_internal`，PM 栈重建网络后代理要手动重连；改走 `edge` 后不再受 PM 栈重建影响，代理也不再和 `pms-db` / `iam-db` 同网。
 
 ## 验证（dikw-web，2026-10-03）
 
