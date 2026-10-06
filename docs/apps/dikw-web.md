@@ -30,18 +30,19 @@
 
 | Casdoor 角色名 | dikw-web 级别 | displayName | 当前成员 |
 |---|---|---|---|
-| `kb_admin` | editor | 知识库管理员 | `mabpharm/guo.admin`、`mabpharm/hele.hl` |
+| `dikw-admin` | editor | 知识库管理员 | `mabpharm/guo.admin`、`mabpharm/hele.hl` |
 
-- dikw-web 读取方式：`DIKW_WEB_OIDC_ROLES_CLAIM=roles[].name`，`DIKW_WEB_OIDC_ROLES_OWNER=mabpharm`，只配 `DIKW_WEB_ROLE_EDITOR=kb_admin`，不配 viewer（dikw-web 允许只配其中一个）。
-- 没有 `kb_admin` 的已登录用户会看到「无访问权限」。`kb_viewer` / `kb_editor` 只对论文知识库（`dikw-kb`）生效，不能进工作台。
-- 和 mp-pm 共存：`kb_admin` 不是 PM 的 6 个角色名之一（PM 有自己的 `admin`），mp-pm 会忽略它。
+- dikw-web 读取方式：`DIKW_WEB_OIDC_ROLES_CLAIM=roles[].name`，`DIKW_WEB_OIDC_ROLES_OWNER=mabpharm`，只配 `DIKW_WEB_ROLE_EDITOR=dikw-admin`，不配 viewer（dikw-web 允许只配其中一个）。
+- 没有 `dikw-admin` 的已登录用户会看到「无访问权限」。`kb_viewer` / `kb_editor` 只对论文知识库（`dikw-kb`）生效，不能进工作台。
+- 和 mp-pm 共存：`dikw-admin` 不是 PM 的 6 个角色名之一（PM 有自己的 `admin`），mp-pm 会忽略它。
 
 ## 3. 权限矩阵
 
-只有一个级别：持有 `kb_admin` 就是 editor，拥有 `dikw.md` 第 3 节 editor 列的全部能力（导入与转换、ingest / synth / eval、lint、取消任务、写 wisdom、确认 agent 维护提案、对话与检索）。
+只有一个级别：持有 `dikw-admin` 就是 editor，拥有 `dikw.md` 第 3 节 editor 列的全部能力（导入与转换、ingest / synth / eval、lint、取消任务、写 wisdom、确认 agent 维护提案、对话与检索）。
 
 ## 4. 变更记录
 
 | 日期 | 变更 | 说明 |
 |---|---|---|
 | 2026-10-06 | 应用注册 + 角色 | 新建应用 `admin/dikw-web`（克隆自 `dikw-kb`）和角色 `kb_admin`（guo.admin、hele.hl）。回调临时用 `http://localhost:4330`，主页地址留空。已验证：localhost 回调通过 Casdoor 校验，其他回调被拒；`dikw-kb` 未变。改动前快照在服务器 `~/mb-pm-v2/private-config-backups/20261006T043320Z-dikw-web-app/` |
+| 2026-10-06 | 角色改名 | 按统一命名规范，`kb_admin` 换成 `dikw-admin`：先新建 `dikw-admin`（成员不变：guo.admin、hele.hl），确认无权限规则和父角色引用后删除 `kb_admin`。当时还没有服务使用该角色。快照 `~/mb-pm-v2/private-config-backups/20261006T043638Z-kb_admin-to-dikw-admin/` |
