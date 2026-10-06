@@ -17,7 +17,7 @@
 
 ## 接入上层应用
 
-见 `docs/apps/<app>.md`：`mp-pm`（CMC 项目管理系统，首个试点）、`dikw.md`（迈博知识库 `dikw-kb`）。OIDC 端点：
+见 `docs/apps/<app>.md`：`mp-pm`（CMC 项目管理系统，首个试点）、`dikw.md`（迈博知识库 `dikw-kb`，拆分后给论文知识库）、`dikw-web.md`（知识库管理工作台 `dikw-web`）。OIDC 端点：
 
 - 授权：`/login/oauth/authorize`
 - 令牌：`/api/login/oauth/access_token`
