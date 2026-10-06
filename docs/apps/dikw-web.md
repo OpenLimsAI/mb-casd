@@ -7,7 +7,7 @@
   - `kb.openlims.ai` 交给 dikw-mbweb，沿用应用 `dikw-kb`（见 [`dikw.md`](dikw.md)）；
   - 工作台改用本应用，只开放给知识库管理员。
 - 部署：maibo-prometheus 服务器 `~/dikw/`，运维文档见 maibo 仓库 `docs/dikw-deploy.md`。
-- 接入状态：**已注册，待切换**。等 dikw-web / dikw-mbweb 新版本发布后，随拆分部署一起上线。
+- 接入状态：**生产运行**（2026-10-06 拆分切换后上线；访问地址暂为 localhost + SSH 隧道）
 
 ## 1. OIDC 客户端配置（Casdoor `application = admin/dikw-web`）
 
@@ -46,3 +46,4 @@
 |---|---|---|
 | 2026-10-06 | 应用注册 + 角色 | 新建应用 `admin/dikw-web`（克隆自 `dikw-kb`）和角色 `kb_admin`（guo.admin、hele.hl）。回调临时用 `http://localhost:4330`，主页地址留空。已验证：localhost 回调通过 Casdoor 校验，其他回调被拒；`dikw-kb` 未变。改动前快照在服务器 `~/mb-pm-v2/private-config-backups/20261006T043320Z-dikw-web-app/` |
 | 2026-10-06 | 角色改名 | 按统一命名规范，`kb_admin` 换成 `dikw-admin`：先新建 `dikw-admin`（成员不变：guo.admin、hele.hl），确认无权限规则和父角色引用后删除 `kb_admin`。当时还没有服务使用该角色。快照 `~/mb-pm-v2/private-config-backups/20261006T043638Z-kb_admin-to-dikw-admin/` |
+| 2026-10-06 | 上线 | 拆分切换（06:03 UTC）：管理工作台 `dikw-web:0.12.2` 使用本应用。服务器只监听 `127.0.0.1:4330`，管理员经 SSH 隧道访问。client 凭据在服务器 `.env` 的 `WORKBENCH_OIDC_*` 里，`dikw-web-oidc.private` 已删除。Chrome 验收通过：用 hele.hl 登录（Editor）；概览数据正确；在 Tasks 页点 Synth，只处理了 1 篇未完成的源文档，0 错误，新建 16 页 |

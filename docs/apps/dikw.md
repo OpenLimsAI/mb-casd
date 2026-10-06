@@ -1,11 +1,15 @@
-# 应用接入档案：dikw-kb（迈博知识库，OpenDIKW）
+# 应用接入档案：dikw-kb（迈博论文知识库，OpenDIKW）
 
 > 每个接入 IAM 中台的上层应用一份本档案，作为该应用 OIDC 配置与 RBAC 的**单一变更跟踪源**。
 
-- 应用：[OpenDIKW](https://github.com/OpenDIKW) 知识库 —— dikw-core（知识引擎）+ dikw-web（Web 界面，OIDC 鉴权在 dikw-web 内实现）
-- 鉴权实现：dikw-web 0.10.0 起的 OIDC / BFF 模式，当前运行 0.11.0（[OpenDIKW/dikw-web#200](https://github.com/OpenDIKW/dikw-web/issues/200)，设计见该仓库 `docs/adr/0006-oidc-auth-bff.md`）
-- 部署：maibo-prometheus 服务器 `~/dikw/`（服务 `dikw-core` / `dikw-web`），运维文档见 maibo 仓库 `docs/dikw-deploy.md`
-- 接入状态：**生产运行**（2026-10-03 切换）
+- 应用：[OpenDIKW](https://github.com/OpenDIKW) 知识库的面向普通用户的**论文知识库**。
+  - 2026-10-06 起由私有应用 dikw-mbweb 提供，OIDC 鉴权在 mbweb 的服务端（BFF）实现。
+  - 和管理工作台共用同一个 dikw-core 知识库，`DIKW_WEB_CORE_ID=maibo-kb`。
+  - 管理工作台用的是另一个应用 `admin/dikw-web`，见 [`dikw-web.md`](dikw-web.md)。
+- 鉴权实现：OIDC / BFF，来自共享包 `@opendikw/web-server`，应用固定为 `appId=dikw-mbweb`、`profile=mbweb`。当前运行 dikw-mbweb 0.1.8。
+  - 2026-10-03 至 10-06 期间，本应用由 dikw-web 0.10 / 0.11 使用（[OpenDIKW/dikw-web#200](https://github.com/OpenDIKW/dikw-web/issues/200)）。
+- 部署：maibo-prometheus 服务器 `~/dikw/`，服务 `dikw-mbweb`，镜像 `dikw-mbweb:0.1.8`，数据卷 `dikw-mbweb-data`。运维文档见 maibo 仓库 `docs/dikw-deploy.md`。
+- 接入状态：**生产运行**（2026-10-03 接入，2026-10-06 改由 dikw-mbweb 使用）
 
 ## 1. OIDC 客户端配置（Casdoor `application = admin/dikw-kb`）
 
@@ -18,12 +22,12 @@
 | `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1`，`refreshExpireInHours: 168` |
 | 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
 | 访问地址 | `https://kb.openlims.ai`（2026-10-03 起；旧域名 `maibo-dikw.i-am-holo.top` 已停用） |
-| 主页地址（`homepageUrl`） | `https://kb.openlims.ai/#mb-web`：IAM 应用列表的入口直接打开论文知识库（MB-Web）；管理工作台在根地址 |
+| 主页地址（`homepageUrl`） | `https://kb.openlims.ai/`（2026-10-06 起；论文知识库就在根地址，旧的 `/#mb-web` 链接仍会打开论文页） |
 | 回调 URI | `https://kb.openlims.ai/web/auth/callback` |
 | 登出回跳 | `https://kb.openlims.ai/`（RP-initiated logout 走 Casdoor `/api/logout`） |
 | Issuer（公网） | `https://iam.openlims.ai` |
 | 服务端访问 IdP | 经同名代理 `iam-proxy`（服务器 `~/iam-proxy`，配置与接入方法见 [`deploy/iam-proxy/`](../../deploy/iam-proxy/README.md)，取舍见 ADR-0003）：服务器访问不了公网 iam.openlims.ai，dikw-web 在专用网络 `iam-oidc` 上把 `iam.openlims.ai` 解析到代理，代理用自建 CA 提供 https，只放行 discovery、JWKS、token、userinfo、introspect，转发到 `casdoor:8000`。dikw-web 不再直连 Casdoor，也不再使用 `DIKW_WEB_OIDC_INTERNAL_URL` |
-| clientId / clientSecret | 只在服务器 `~/dikw/.env`（`DIKW_WEB_OIDC_CLIENT_ID` / `DIKW_WEB_OIDC_CLIENT_SECRET`），不入库 |
+| clientId / clientSecret | 只在服务器 `~/dikw/.env`（`MBWEB_OIDC_CLIENT_ID` / `MBWEB_OIDC_CLIENT_SECRET`，compose 映射为 mbweb 的 `DIKW_WEB_OIDC_CLIENT_*`），不入库；会话密钥 `MBWEB_SESSION_SECRET` 与工作台分开 |
 
 > 应用配置以 `mp-pm` 应用为模板克隆（字段齐全），改了名称、回调、client 凭据和 grantTypes。
 >
@@ -40,17 +44,19 @@
 - **与 mp-pm 共存**：mp-pm 只认自己的 6 个角色名并要求恰好一个，`kb_*` 不在其集合内会被忽略 —— 同一用户可同时持有一个 PM 角色和一个 kb 角色。新增知识库角色时**不要**与 PM 角色重名。
 - 没有任何 kb 角色的已登录用户会看到「无访问权限」页面。角色变更在下次续期时同步（约 15 分钟内），不需要重新登录。
 
-## 3. 权限矩阵（dikw-web 服务端强制）
+## 3. 权限矩阵（dikw-mbweb 0.1.8 服务端强制）
 
 | 能力 | viewer | editor |
 |---|:-:|:-:|
-| 浏览页面、图谱、任务（`GET /v1/*`），`POST /v1/retrieve`、`POST /v1/doc/search` | ✓ | ✓ |
-| 与 agent 对话（仅自己的会话）、双语阅读（`/web/translate/*`） | ✓ | ✓ |
-| 导入与文档转换（`POST /v1/import`、`/web/mineru/*`） | | ✓ |
-| ingest / synth / eval、lint propose / apply、取消任务、写 wisdom | | ✓ |
-| 确认 agent 维护提案 | | ✓ |
+| 浏览论文列表、阅读原文和图片 | ✓ | ✓ |
+| 论文问答（agent，仅自己的会话）、中英对照（`/web/translate/*`） | ✓ | ✓ |
+| 本地笔记 | ✓ | ✓ |
+| 上传论文：转换 → import → ingest（`/web/mineru/*`、`POST /v1/import`、ingest） | | ✓ |
+| 笔记归档到 Wisdom（`POST /v1/base/wisdom`） | | ✓ |
+| 全库分析 / synth | ✗ | ✗（`/v1/synth` 一律返回 `403 capability_forbidden`，改在管理工作台执行） |
+| 管理维护（lint、任务管理、agent 维护提案等） | ✗ | ✗（只在管理工作台） |
 
-未列出的 dikw-core 写接口一律只给 editor。所有写请求要求 `Origin` 与 `https://kb.openlims.ai` 完全一致（CSRF）。
+所有写请求要求 `Origin` 与 `https://kb.openlims.ai` 完全一致（CSRF）。2026-10-06 切换前，本应用由 dikw-web 0.11 使用，那时的矩阵另含 synth / lint / 任务管理（现归工作台，见 [`dikw-web.md`](dikw-web.md)）。
 
 ## 4. 其他约定
 
@@ -71,3 +77,5 @@
 | 2026-10-03 | 服务端改走 iam-proxy | 新增同名代理 `~/iam-proxy`（Caddy，自建 CA，专用网络 `iam-oidc`，只放行 5 个服务端 OIDC 路径）；dikw-web 去掉内网地址配置、退出 `mb-pm-v2_internal`。Casdoor 应用配置不变。discovery、续期换 token、JWKS 验签均已验证。后续 managed-agent console / platform 接入 IAM 复用此代理 |
 | 2026-10-04 | 入口默认打开论文知识库 | `homepageUrl` 改为 `https://kb.openlims.ai/#mb-web`；mb-pm 的 www 工作台与「相关系统 → 知识库」同步改为该地址（OpenLimsAI/mb-pm#14，已上线）。未登录时 dikw-web 登录会保留 `#mb-web`。快照 `~/mb-pm-v2/private-config-backups/20261004T150856Z-dikw-kb-homepage/` |
 | 2026-10-06 | 计划：改给论文知识库 | dikw-web 0.12 起论文知识库拆成独立应用 dikw-mbweb。拆分部署时，`kb.openlims.ai` 交给 dikw-mbweb，**继续使用本应用 `dikw-kb`**：回调、角色、续期设置都不变，`kb_viewer` = 查看、`kb_editor` = 上传和发布。管理工作台改用新应用 `admin/dikw-web`（见 [`dikw-web.md`](dikw-web.md)，角色 `dikw-admin`）。切换后再更新本档案的应用说明、`homepageUrl` 和权限矩阵 |
+| 2026-10-06 | 改由 dikw-mbweb 使用 | 拆分切换（06:03 UTC）：`kb.openlims.ai` 改由 dikw-mbweb 0.1.8 提供，继续使用本应用。回调地址、角色、续期设置都不变，client 凭据在服务器 `.env` 里改名为 `MBWEB_OIDC_*`。切换后 Chrome 验收通过：登录、阅读、中英对照、问答引用、笔记归档到 Wisdom、重复上传被拦截、synth 返回 403 |
+| 2026-10-06 | 主页地址改回根地址 | `homepageUrl` 从 `https://kb.openlims.ai/#mb-web` 改为 `https://kb.openlims.ai/`。mb-pm 的入口同步改（OpenLimsAI/mb-pm#17，PM 镜像 `mb-pm:kb-root-20261006T072035Z`）。快照 `~/mb-pm-v2/private-config-backups/20261006T071509Z-dikw-kb-homepage-root/` |
