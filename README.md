@@ -17,7 +17,7 @@
 
 ## 接入上层应用
 
-见 `docs/apps/<app>.md`：`mp-pm`（CMC 项目管理系统，首个试点）、`dikw.md`（论文知识库 `dikw-kb`，dikw-mbweb）、`dikw-web.md`（知识库管理工作台 `dikw-web`）。OIDC 端点：
+见 `docs/apps/<app>.md`：`mp-pm`（CMC 项目管理系统，首个试点）、`maibo-portal.md`（员工门户 `maibo-portal`）、`dikw.md`（论文知识库 `dikw-kb`，dikw-mbweb）、`dikw-web.md`（知识库管理工作台 `dikw-web`）。这 4 个应用共用 IAM 会话，输一次密码即可进入全部有权限的应用（ADR-0004）。OIDC 端点：
 
 - 授权：`/login/oauth/authorize`
 - 令牌：`/api/login/oauth/access_token`
@@ -33,6 +33,7 @@
 - CDN/内网取舍：`docs/decisions/0001-static-assets-cdn.md`
 - 关闭内置应用公开注册：`docs/decisions/0002-disable-builtin-signup.md`
 - 服务端 OIDC 调用走同名 TLS 代理：`docs/decisions/0003-server-side-oidc-via-iam-proxy.md`
+- 开启 IAM 会话复用（单点登录）：`docs/decisions/0004-signin-session-sso.md`
 
 ## 部署机上的 iam-proxy
 
