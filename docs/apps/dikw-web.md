@@ -20,6 +20,7 @@
 | `grantTypes` | `authorization_code`、`refresh_token`（**`refresh_token` 不能关**，原因同 `dikw.md` 第 1 节） |
 | `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1`，`refreshExpireInHours: 168` |
 | 注册 | 关闭（`enableSignUp: false`） |
+| 单点登录 | `enableSigninSession: true`、`enableAutoSignin: true`、`cookieExpireInHours: 168`（2026-10-07 起，见 ADR-0004） |
 | 访问地址 | 临时：管理员经 SSH 隧道访问 `http://localhost:4330`（服务器只监听 `127.0.0.1:4330`）。计划：`https://kb-admin.openlims.ai`，等同事在 Cloudflare 隧道加公开主机名 |
 | 回调 URI | 临时 `http://localhost:4330/web/auth/callback`（登出回跳 `http://localhost:4330/`）；改用正式域名时换成 `https://kb-admin.openlims.ai/...` |
 | 主页地址（`homepageUrl`） | 空（临时地址是 localhost，不在 IAM 应用列表里放入口） |
@@ -47,3 +48,4 @@
 | 2026-10-06 | 应用注册 + 角色 | 新建应用 `admin/dikw-web`（克隆自 `dikw-kb`）和角色 `kb_admin`（guo.admin、hele.hl）。回调临时用 `http://localhost:4330`，主页地址留空。已验证：localhost 回调通过 Casdoor 校验，其他回调被拒；`dikw-kb` 未变。改动前快照在服务器 `~/mb-pm-v2/private-config-backups/20261006T043320Z-dikw-web-app/` |
 | 2026-10-06 | 角色改名 | 按统一命名规范，`kb_admin` 换成 `dikw-admin`：先新建 `dikw-admin`（成员不变：guo.admin、hele.hl），确认无权限规则和父角色引用后删除 `kb_admin`。当时还没有服务使用该角色。快照 `~/mb-pm-v2/private-config-backups/20261006T043638Z-kb_admin-to-dikw-admin/` |
 | 2026-10-06 | 上线 | 拆分切换（06:03 UTC）：管理工作台 `dikw-web:0.12.2` 使用本应用。服务器只监听 `127.0.0.1:4330`，管理员经 SSH 隧道访问。client 凭据在服务器 `.env` 的 `WORKBENCH_OIDC_*` 里，`dikw-web-oidc.private` 已删除。Chrome 验收通过：用 hele.hl 登录（Editor）；概览数据正确；在 Tasks 页点 Synth，只处理了 1 篇未完成的源文档，0 错误，新建 16 页 |
+| 2026-10-07 | 开启单点登录 | 和其他 3 个 `mabpharm` 应用一起打开 `enableSigninSession`、`enableAutoSignin`，`cookieExpireInHours` 0 → 168，见 ADR-0004。快照 `~/mb-pm-v2/private-config-backups/20261007T232541Z-sso-session/`。工作台需要 SSH 隧道，这次没有在浏览器里验证 |

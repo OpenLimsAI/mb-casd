@@ -26,6 +26,21 @@
 
 > dev 端点用 `localhost:8000`；后续生产换为正式域名时，同步更新此表与 Casdoor 应用配置。
 
+**生产配置**（2026-10-08 从生产 IAM 核对，上表仍是开发环境的值）：
+
+| 项 | 值 |
+|---|---|
+| 显示名 | CMC 项目管理系统 |
+| 访问地址 / `homepageUrl` | `https://pm.openlims.ai` |
+| 回调 URI | `https://pm.openlims.ai/api/v1/auth/callback`（后端换 token，token 不进浏览器） |
+| 登出回跳 | `https://pm.openlims.ai/login` |
+| `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1` |
+| 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
+| 单点登录 | `enableSigninSession: true`、`enableAutoSignin: true`、`cookieExpireInHours: 168`（2026-10-07 起，见 ADR-0004） |
+| clientId / clientSecret | 只在服务器 PM 栈的 `.env`（`CASDOOR_CLIENT_ID` / `CASDOOR_CLIENT_SECRET`），不入库 |
+
+- PM 会话最长 1 小时（`IAM_SESSION_SECONDS` 默认 3600），不续期。到期后重新走授权；IAM 会话还在时自动登录。
+
 ## 2. 角色（Casdoor 角色名 ⇄ mp-pm `Role`）
 
 命名刻意与 mp-pm 代码内 `Role` 一致，避免翻译层。来源：`mp-pm/src/types.ts`、`mp-pm/src/lib/permissions.ts`。
@@ -40,6 +55,13 @@
 | `qa_qc` | `qa_qc` | QA/QC |
 
 约定：本期一个用户分配**一个**角色（匹配 mp-pm 单角色模型 `User.role`）。
+
+生产当前成员（2026-10-08 核对）：`admin` = `mabpharm/guo.admin`、`mabpharm/hele.hl`；`cmc_lead` = `mabpharm/guo.cmc`；其他 4 个角色暂无成员。
+
+开通 PM 登录要两步，缺一步都会被拒（403）：
+
+1. 在 IAM 给用户分配**恰好一个** PM 角色。
+2. 在 PM「组织」里预置同用户名的启用成员。首次登录时，PM 按用户名把成员绑定到 IAM 的 `sub`，之后按 `sub` 识别。
 
 ## 3. 权限矩阵（mp-pm 内部，角色→权限）
 
@@ -102,6 +124,8 @@
 | 2026-06-29 | 后端 Docker 化 + 运行拓扑固化 | mp-pm 后端容器化（宿主 `8080`→容器 `8000`，避开 Casdoor 占用的 8000）；容器内 JWKS 走 `host.docker.internal`，issuer 仍校验 `localhost:8000`（`CASDOOR_JWKS_URL` 与 `CASDOOR_ENDPOINT` 解耦）；前端 `.env.local` 须指向 8080；前端 auth gate 修复（`ReadyGate` / 无 token 跳 Casdoor）。建表改用 SQLAlchemy `create_all`（alembic 迁移与模型漂移）。详见第 6 节 |
 | 2026-06-29 | 登出（RP-initiated logout） | 补 `logout()`：清 oidc user + axios JWT，跳 Casdoor `/api/logout` 清 SSO 会话；TopBar 加「登出」；新增 `VITE_OIDC_POST_LOGOUT_REDIRECT_URI`（缺省回落 origin）。本地登出回跳 `http://localhost:5175/` 因 localhost 源免注册放行（生产需登记） |
 | 2026-06-29 | 多账号登录/登出走查（验收通过） | Chrome 走查 6 个种子账号各自登录 + 登出全部通过：admin/张管理、guo.cmc/郭主任、li.pm1/李项目、liu.usp1/刘上游、mao.prod1/毛生产、qa.zhao/赵质量。角色门控 UI 正确：admin & cmc_lead 见「创建项目/创建模板/添加成员」，project_lead/rd/production/qa_qc 均不见。每次登出均落到 Casdoor 登录页空表单、换登显示**新用户本人**（≥6 次切换无静默重登）→ SSO 会话确实被清。存档 `mp-pm-multi-user-logout.gif` |
+| 2026-10-07 | 给 hele.hl 开通 PM 登录 | 把 `mabpharm/hele.hl` 加进角色 `admin`（现为 guo.admin、hele.hl），并在 PM 预置成员 `u-d1ff83b220`（hele.hl / Le He / 占位邮箱 `hele.hl@cmc.com`）。首次登录后 IAM `sub` 已绑定到该成员。快照 `~/mb-pm-v2/private-config-backups/20261007T230834Z-hele-pm-admin/` |
+| 2026-10-07 | 开启单点登录 | 和 `maibo-portal`、`dikw-kb`、`dikw-web` 一起打开 `enableSigninSession`、`enableAutoSignin`，`cookieExpireInHours` 0 → 168，见 ADR-0004。快照 `~/mb-pm-v2/private-config-backups/20261007T232541Z-sso-session/`。Chrome 验证：在知识库登录后，从 `/api/v1/auth/login` 进入 PM 不用再输密码。退出仍会清掉 IAM 会话，所以上面 2026-06-29 验收的「换账号不会静默登回」仍然成立 |
 
 ## 6. 本地运行拓扑（Docker）
 

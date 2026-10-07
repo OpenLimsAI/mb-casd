@@ -21,6 +21,7 @@
 | `grantTypes` | `authorization_code`、`refresh_token`（dikw-web ≥ 0.11.0 用 refresh token 续期会话并同步角色；无需 `offline_access`） |
 | `tokenFormat` | JWT（`cert-built-in`），`expireInHours: 1`，`refreshExpireInHours: 168` |
 | 注册 | 关闭（`enableSignUp: false`），账号由管理员开通 |
+| 单点登录 | `enableSigninSession: true`、`enableAutoSignin: true`、`cookieExpireInHours: 168`（2026-10-07 起，见 ADR-0004）：在门户、PM 或工作台登录过，打开知识库时自动登录 |
 | 访问地址 | `https://kb.openlims.ai`（2026-10-03 起；旧域名 `maibo-dikw.i-am-holo.top` 已停用） |
 | 主页地址（`homepageUrl`） | `https://kb.openlims.ai/`（2026-10-06 起；论文知识库就在根地址，旧的 `/#mb-web` 链接仍会打开论文页） |
 | 回调 URI | `https://kb.openlims.ai/web/auth/callback` |
@@ -79,3 +80,4 @@
 | 2026-10-06 | 计划：改给论文知识库 | dikw-web 0.12 起论文知识库拆成独立应用 dikw-mbweb。拆分部署时，`kb.openlims.ai` 交给 dikw-mbweb，**继续使用本应用 `dikw-kb`**：回调、角色、续期设置都不变，`kb_viewer` = 查看、`kb_editor` = 上传和发布。管理工作台改用新应用 `admin/dikw-web`（见 [`dikw-web.md`](dikw-web.md)，角色 `dikw-admin`）。切换后再更新本档案的应用说明、`homepageUrl` 和权限矩阵 |
 | 2026-10-06 | 改由 dikw-mbweb 使用 | 拆分切换（06:03 UTC）：`kb.openlims.ai` 改由 dikw-mbweb 0.1.8 提供，继续使用本应用。回调地址、角色、续期设置都不变，client 凭据在服务器 `.env` 里改名为 `MBWEB_OIDC_*`。切换后 Chrome 验收通过：登录、阅读、中英对照、问答引用、笔记归档到 Wisdom、重复上传被拦截、synth 返回 403 |
 | 2026-10-06 | 主页地址改回根地址 | `homepageUrl` 从 `https://kb.openlims.ai/#mb-web` 改为 `https://kb.openlims.ai/`。mb-pm 的入口同步改（OpenLimsAI/mb-pm#17，PM 镜像 `mb-pm:kb-root-20261006T072035Z`）。快照 `~/mb-pm-v2/private-config-backups/20261006T071509Z-dikw-kb-homepage-root/` |
+| 2026-10-07 | 开启单点登录 | 和 `maibo-portal`、`mp-pm`、`dikw-web` 一起打开 `enableSigninSession`、`enableAutoSignin`，`cookieExpireInHours` 0 → 168，见 ADR-0004。快照 `~/mb-pm-v2/private-config-backups/20261007T232541Z-sso-session/`。Chrome 验证：hele.hl 在知识库输一次密码后，门户、IAM 控制台、PM 都直接进入 |
