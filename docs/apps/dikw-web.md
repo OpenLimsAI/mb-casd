@@ -6,7 +6,7 @@
 - 背景：dikw-web 0.12 起，论文知识库（MB-Web）拆成独立的私有应用 `dikw-mbweb`。拆分后：
   - `kb.openlims.ai` 交给 dikw-mbweb，沿用应用 `dikw-kb`（见 [`dikw.md`](dikw.md)）；
   - 工作台改用本应用，只开放给知识库管理员。
-- 部署：maibo-prometheus 服务器 `~/dikw/`，运维文档见 maibo 仓库 `docs/dikw-deploy.md`。
+- 部署：maibo-prometheus 服务器 `~/dikw/`，服务 `dikw-web`，当前镜像 `dikw-web:0.12.4`（2026-10-06 起，2026-10-08 核对）。运维文档见 maibo 仓库 `docs/dikw-deploy.md`。
 - 接入状态：**生产运行**（2026-10-06 拆分切换后上线；访问地址暂为 localhost + SSH 隧道）
 
 ## 1. OIDC 客户端配置（Casdoor `application = admin/dikw-web`）

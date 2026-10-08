@@ -6,9 +6,13 @@
   - 2026-10-06 起由私有应用 dikw-mbweb 提供，OIDC 鉴权在 mbweb 的服务端（BFF）实现。
   - 和管理工作台共用同一个 dikw-core 知识库，`DIKW_WEB_CORE_ID=maibo-kb`。
   - 管理工作台用的是另一个应用 `admin/dikw-web`，见 [`dikw-web.md`](dikw-web.md)。
-- 鉴权实现：OIDC / BFF，来自共享包 `@opendikw/web-server`，应用固定为 `appId=dikw-mbweb`、`profile=mbweb`。当前运行 dikw-mbweb 0.1.8。
+- 鉴权实现：OIDC / BFF，来自共享包 `@opendikw/web-server`，应用固定为 `appId=dikw-mbweb`、`profile=mbweb`。
+  - 当前运行 dikw-mbweb **0.1.10**（源码提交 `05a2568`），上面叠了两层迈博本地补丁（2026-10-08 由同事部署）：
+    - 界面统一：只换前端，样式与 PM 一致。发布包在服务器 `~/dikw/brand-releases/maibo-20261008T004840Z/`。
+    - 持久化翻译：改了 BFF，整篇译文存在服务器上，所有读者共用。发布包在服务器 `~/dikw/translation-releases/translation-20261008T012722Z/`。
+  - 两层补丁都没有改 IAM 客户端、回调地址和 PKCE。
   - 2026-10-03 至 10-06 期间，本应用由 dikw-web 0.10 / 0.11 使用（[OpenDIKW/dikw-web#200](https://github.com/OpenDIKW/dikw-web/issues/200)）。
-- 部署：maibo-prometheus 服务器 `~/dikw/`，服务 `dikw-mbweb`，镜像 `dikw-mbweb:0.1.8`，数据卷 `dikw-mbweb-data`。运维文档见 maibo 仓库 `docs/dikw-deploy.md`。
+- 部署：maibo-prometheus 服务器 `~/dikw/`，服务 `dikw-mbweb`，镜像 `dikw-mbweb:translation-20261008T012722Z`（基于 `dikw-mbweb:0.1.10`），数据卷 `dikw-mbweb-data`（译文库是其中的 `/data/mbweb/translations.sqlite`）。运维文档见 maibo 仓库 `docs/dikw-deploy.md`。
 - 接入状态：**生产运行**（2026-10-03 接入，2026-10-06 改由 dikw-mbweb 使用）
 
 ## 1. OIDC 客户端配置（Casdoor `application = admin/dikw-kb`）
@@ -45,12 +49,13 @@
 - **与 mp-pm 共存**：mp-pm 只认自己的 6 个角色名并要求恰好一个，`kb_*` 不在其集合内会被忽略 —— 同一用户可同时持有一个 PM 角色和一个 kb 角色。新增知识库角色时**不要**与 PM 角色重名。
 - 没有任何 kb 角色的已登录用户会看到「无访问权限」页面。角色变更在下次续期时同步（约 15 分钟内），不需要重新登录。
 
-## 3. 权限矩阵（dikw-mbweb 0.1.8 服务端强制）
+## 3. 权限矩阵（dikw-mbweb 0.1.10 加迈博补丁，服务端强制，2026-10-08 核对）
 
 | 能力 | viewer | editor |
 |---|:-:|:-:|
 | 浏览论文列表、阅读原文和图片 | ✓ | ✓ |
 | 论文问答（agent，仅自己的会话）、中英对照（`/web/translate/*`） | ✓ | ✓ |
+| 开始翻译 / 重新翻译整篇论文（`/web/papers/translation`，迈博补丁）：译文存在服务器，所有读者共用；只有发起人能取消翻译任务 | ✓ | ✓ |
 | 本地笔记 | ✓ | ✓ |
 | 上传论文：转换 → import → ingest（`/web/mineru/*`、`POST /v1/import`、ingest） | | ✓ |
 | 笔记归档到 Wisdom（`POST /v1/base/wisdom`） | | ✓ |
@@ -58,6 +63,10 @@
 | 管理维护（lint、任务管理、agent 维护提案等） | ✗ | ✗（只在管理工作台） |
 
 所有写请求要求 `Origin` 与 `https://kb.openlims.ai` 完全一致（CSRF）。2026-10-06 切换前，本应用由 dikw-web 0.11 使用，那时的矩阵另含 synth / lint / 任务管理（现归工作台，见 [`dikw-web.md`](dikw-web.md)）。
+
+0.1.8 → 0.1.10 的官方版本没有改权限：mbweb 的 `server/capabilities.ts` 只改了 `/v1/synth` 的匹配写法（防正则拒绝服务），共享包 `@opendikw/web-server` 0.1.2 → 0.1.4 只改了版本号。表里唯一的新行来自迈博的持久化翻译补丁。
+
+⚠️ viewer 也能「重新翻译」，结果会覆盖所有人看到的译文。如果只想让 editor 改共用译文，要改补丁代码（`server/paper-translation.ts` 的角色检查），IAM 这边做不到。
 
 ## 4. 其他约定
 
@@ -81,3 +90,4 @@
 | 2026-10-06 | 改由 dikw-mbweb 使用 | 拆分切换（06:03 UTC）：`kb.openlims.ai` 改由 dikw-mbweb 0.1.8 提供，继续使用本应用。回调地址、角色、续期设置都不变，client 凭据在服务器 `.env` 里改名为 `MBWEB_OIDC_*`。切换后 Chrome 验收通过：登录、阅读、中英对照、问答引用、笔记归档到 Wisdom、重复上传被拦截、synth 返回 403 |
 | 2026-10-06 | 主页地址改回根地址 | `homepageUrl` 从 `https://kb.openlims.ai/#mb-web` 改为 `https://kb.openlims.ai/`。mb-pm 的入口同步改（OpenLimsAI/mb-pm#17，PM 镜像 `mb-pm:kb-root-20261006T072035Z`）。快照 `~/mb-pm-v2/private-config-backups/20261006T071509Z-dikw-kb-homepage-root/` |
 | 2026-10-07 | 开启单点登录 | 和 `maibo-portal`、`mp-pm`、`dikw-web` 一起打开 `enableSigninSession`、`enableAutoSignin`，`cookieExpireInHours` 0 → 168，见 ADR-0004。快照 `~/mb-pm-v2/private-config-backups/20261007T232541Z-sso-session/`。Chrome 验证：hele.hl 在知识库输一次密码后，门户、IAM 控制台、PM 都直接进入 |
+| 2026-10-08 | 核对当前版本和权限 | 本档案原来写的是 0.1.8，现改成线上实际运行的版本。中间的变化：<br>- 2026-10-06 升级到 0.1.9、0.1.10（阅读器、上传修复和安全修复），客户端配置不变；<br>- 2026-10-08 同事在 0.1.10 上部署了界面统一和持久化翻译两层本地补丁，IAM 客户端、回调地址和 PKCE 不变。<br>权限矩阵核对了官方代码和补丁：只多了持久化翻译一行（viewer、editor 都能用，译文共用）。依据：容器镜像标签和源码提交标签、`git diff v0.1.8 v0.1.10`、补丁 `customer.patch` 里的 `server/paper-translation.ts` |
