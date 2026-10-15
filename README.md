@@ -34,6 +34,7 @@
 - 关闭内置应用公开注册：`docs/decisions/0002-disable-builtin-signup.md`
 - 服务端 OIDC 调用走同名 TLS 代理：`docs/decisions/0003-server-side-oidc-via-iam-proxy.md`
 - 开启 IAM 会话复用（单点登录）：`docs/decisions/0004-signin-session-sso.md`
+- 把 guo.admin 设为 mabpharm 组织管理员：`docs/decisions/0005-mabpharm-org-admin.md`
 
 ## 部署机上的 iam-proxy
 
