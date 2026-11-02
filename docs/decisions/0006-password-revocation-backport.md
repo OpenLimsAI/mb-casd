@@ -15,7 +15,7 @@
 - 源码：`casdoor/casdoor@7325999791deaeab538f86082d70858d0ab4d773`，tag `v3.152.0`。
 - GitHub API tarball SHA-256：`8ce76d5508bbb1b5ac0cb0bf366089732a75269ea69c53a1de3862957696a18d`。
 - 生产基底：`casbin/casdoor@sha256:95c7be68fb98daf2ec74a10c9f785af1ef75e8fef6dd4aad455a899e651e87e2`。
-- 构建：`build/Dockerfile.password-revocation`；精确 patch、`--fuzz=0`，任何源文件漂移直接构建失败。
+- 构建：`build/Dockerfile.password-revocation`；精确补丁、`git apply --check`，任何源文件漂移直接构建失败。
 - 候选只覆盖 `/server`，不包含客户数据、凭据或 init_data；构建上下文白名单仅包含补丁和构建定义。
 
 ## 行为
