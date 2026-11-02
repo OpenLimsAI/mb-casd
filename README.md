@@ -15,6 +15,8 @@
    python3 scripts/harden.py --check   # 已加固时退出码 0
    ```
 
+密码全局撤销的安全候选构建及验收见 [ADR-0006](docs/decisions/0006-password-revocation-backport.md)。未完成隔离验收前不视为已部署。
+
 ## 接入上层应用
 
 见 `docs/apps/<app>.md`：`mp-pm`（CMC 项目管理系统，首个试点）、`maibo-portal.md`（员工门户 `maibo-portal`）、`dikw.md`（论文知识库 `dikw-kb`，dikw-mbweb）、`dikw-web.md`（知识库管理工作台 `dikw-web`）。这 4 个应用共用 IAM 会话，输一次密码即可进入全部有权限的应用（ADR-0004）。OIDC 端点：

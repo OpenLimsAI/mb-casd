@@ -1,0 +1,5 @@
+*
+!build/
+!build/Dockerfile.password-revocation
+!patches/
+!patches/casdoor-3.152.0-password-revocation.patch

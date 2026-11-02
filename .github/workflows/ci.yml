@@ -13,6 +13,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -22,7 +25,7 @@ jobs:
     name: 校验 · 配置与种子数据
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: init_data.json 是合法 JSON
         run: |
@@ -48,7 +51,7 @@ jobs:
     name: 护栏 · 红线检查
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: 禁止提交真实密钥文件（仅允许 *.example）
         run: |
@@ -76,3 +79,12 @@ jobs:
             exit 1
           fi
           echo "images pinned OK"
+
+  password-revocation:
+    name: 安全补丁 · 固定源码构建与撤销回归
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: 构建候选（包含四种撤销成功/失败流程测试）
+        run: docker build --platform linux/amd64 -f build/Dockerfile.password-revocation -t maibo-iam-password-revocation:ci .
