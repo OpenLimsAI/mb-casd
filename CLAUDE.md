@@ -1,6 +1,6 @@
 # CLAUDE.md — mb-casd
 
-迈博药业（mabpharm）IAM 中台，基于 Casdoor。本目录是**定制化工作目录**：所有定制收敛在配置、静态资源、数据初始化里，**不 fork Casdoor 源码**。
+迈博药业（mabpharm）IAM 中台，基于 Casdoor。本目录是**定制化工作目录**：所有定制收敛在配置、静态资源、数据初始化里，通常**不 fork Casdoor 源码**；审计所需的最小密码撤销安全补丁例外见 [ADR-0006](docs/decisions/0006-password-revocation-backport.md)。
 
 ## 当前状态
 
@@ -8,7 +8,7 @@
 
 ## 关键决策（详见 spec §2）
 
-- 仅品牌化，用官方预构建镜像 `casbin/casdoor`，**不改源码**（升级=换 tag）。
+- 常规仅品牌化，使用固定官方镜像；密码变更撤销的受限安全例外采用固定源码补丁构建，见 ADR-0006。
 - 本机 / POC 优先；生产加固（TLS/反代/密钥/备份）留后续。
 - 上层应用用 **OIDC 授权码 + PKCE** 登录，重定向到 Casdoor 托管登录页。
 - **仅中文**（`forceLanguage=zh`）。
