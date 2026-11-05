@@ -1,0 +1,20 @@
+{
+  "verified_at_utc": "2026-11-05T01:56:18.686902+00:00",
+  "local_only": true,
+  "deployed": false,
+  "mdm_backend_passed": 396,
+  "mdm_frontend_passed": 55,
+  "pm_backend_pg18_passed": 279,
+  "pm_frontend_passed": 1173,
+  "iam_protocol": {
+    "security": 18,
+    "policy": 16,
+    "default_off": 3
+  },
+  "remote_ci": "Not yet run for new commits",
+  "limitations": [
+    "Direct signature audit_log_id remains nullable/unfilled",
+    "No new complete cross-system browser signing run on latest PM main",
+    "MFA/SMTP recovery/real users and production migration excluded"
+  ]
+}

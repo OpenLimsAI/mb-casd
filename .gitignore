@@ -23,3 +23,13 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+
+# Local pinned upstream and disposable verification output
+tests/v4-revocation/upstream/
+tests/v4-revocation/upstream.tar.gz
+tests/v4-revocation/__pycache__/
+tests/v4-revocation/inventory.json
+tests/v4-revocation/preparation.jsonl
+tests/credential-epoch/__pycache__/
+tests/credential-epoch/inventory.json
+tests/credential-epoch/preparation.jsonl

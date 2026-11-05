@@ -1,7 +1,8 @@
 name: CI
 
-# mb-casd 是 Casdoor 定制化「配置 + 数据 + 资产」仓（不 fork 源码），
-# 故 CI 不编译代码，只做两类轻量护栏：
+# mb-casd 维护配置/数据/资产，以及用户批准的固定版本撤销补丁。
+# 不发布上游 fork；v4-backport 校验补丁、运行 Go 护栏并编译固定服务。
+# 另保留两类配置护栏：
 #   1) validate —— 配置/种子数据语法可解析（init_data.json 合法 JSON、docker-compose 可渲染）
 #   2) guard    —— 红线检查（密钥文件未被提交、镜像钉死版本号不用 latest）
 # 触发：对 main 的 PR 与推送。如需真正阻断合并，在 GitHub → Settings → Branches
@@ -21,6 +22,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  v4-backport:
+    name: 回归 · 固定 v4 构建与安全协议
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: 校验两条维护版本的打包输入与 CI 护栏
+        run: python3 tests/test_release_packaging.py
+      - name: 使用纯合成哨兵检查实际 Docker 构建上下文
+        run: python3 scripts/verify_build_context.py
+      - name: 下载并校验固定官方源码
+        run: python3 tests/v4-revocation/fetch_source.py
+      - name: 补丁校验、Go 护栏与完整服务编译（不发布）
+        run: docker build -f build/Dockerfile.v4-password-revocation -t mb-casd-v4:ci .
+      - run: python3 -m unittest discover -s tests/iam_v4 -p 'test_*.py'
+      - run: docker build -f tests/iam_v4/Dockerfile.tools -t mb-casd-iam-v4-tools:local .
+      - run: python3 tests/iam_v4/run_security.py --image mb-casd-v4:ci --run-tag ci-sec --replica
+      - run: python3 tests/iam_v4/run_compatibility.py --image mb-casd-v4:ci --mode policy --run-tag ci-pol
+      - run: python3 tests/iam_v4/run_compatibility.py --image mb-casd-v4:ci --mode default-off --run-tag ci-def
+
   validate:
     name: 校验 · 配置与种子数据
     runs-on: ubuntu-latest
