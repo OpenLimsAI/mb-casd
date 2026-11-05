@@ -1,5 +1,17 @@
 *
 !build/
+build/*
 !build/Dockerfile.password-revocation
+!build/Dockerfile.v4-password-revocation
 !patches/
+patches/*
 !patches/casdoor-3.152.0-password-revocation.patch
+!patches/casdoor-4.25.0-password-revocation-scoped-policy.patch
+!tests/
+tests/*
+!tests/v4-revocation/
+tests/v4-revocation/*
+!tests/v4-revocation/upstream.tar.gz
+!tests/iam_v4/
+tests/iam_v4/*
+!tests/iam_v4/requirements.lock

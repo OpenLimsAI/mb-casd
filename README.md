@@ -41,3 +41,7 @@
 ## 部署机上的 iam-proxy
 
 部署机访问不了公网 `iam.openlims.ai`，上层应用的服务端 OIDC 调用（discovery / token / JWKS）经同名 TLS 代理走内网。部署和接入方法见 [`deploy/iam-proxy/README.md`](deploy/iam-proxy/README.md)。
+
+### v4 候选兼容验证（未部署）
+
+固定 v4.25.0 补丁、受限本人接口与回退边界见 [ADR-0007](docs/decisions/0007-v4-revocation-scoped-policy.md)，复跑入口见 [协议回归](tests/iam_v4/README.md)。默认运行版本不自动切换；本地结果及限制见[候选验证](docs/verification/pr-candidate-20261105.md)。

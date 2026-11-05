@@ -35,3 +35,14 @@ quota = {"organization": -1, "user": -1, "application": -1, "provider": -1}
 logConfig = {"adapter":"file", "filename": "logs/casdoor.log", "maxdays":99999, "perm":"0770"}
 initDataNewOnly = true
 initDataFile = "/init_data.json"
+
+# Optional mb-casd v11 candidate capability. Empty means disabled.
+# Exact organization/clientId entries only; requires separate deployment approval.
+dcrSelfLogoutApplications = ""
+# Optional v11 candidate; all empty/false by default. Exact org/client IDs.
+# Separate approval and matching RP implementation are required before deployment.
+dcrSelfLogoutDeviceApplications = ""
+openlimsSelfPolicyApplications = ""
+# Exact resource-client=delegation-client pairs; no wildcard or extra grant.
+openlimsSelfPolicyDelegationBindings = ""
+openlimsScopedLogout = false
