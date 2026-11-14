@@ -4,8 +4,8 @@ import re
 import subprocess
 
 SOURCE = '528a0213f01caf70b9f41009cbf7b2f67bdd67ec'
-BINARY_SHA256 = '688ef68705c9d1758b074e1f33754eeb5ad6a12af0f85de64d8f8ad9fc3abf7d'
-PATCH = 'password-revocation-own-policy-device-v11-local'
+BINARY_SHA256 = '5eb841954c0f06e7746b7f5bc5fe7ca83fecaa79bce05708991e99f4804e48c1'
+PATCH = 'password-revocation-own-policy-device-v11-cors-v1'
 
 
 def verify_metadata(identity, labels, binary_sha256):
@@ -13,7 +13,7 @@ def verify_metadata(identity, labels, binary_sha256):
             or labels.get('ai.openlims.casdoor.source') != SOURCE
             or labels.get('ai.openlims.casdoor.patch') != PATCH
             or binary_sha256 != BINARY_SHA256):
-        raise ValueError('Image does not match the reviewed fixed v11 binary/source contract')
+        raise ValueError('Image does not match the reviewed fixed v11+CORS binary/source contract')
     return identity
 
 

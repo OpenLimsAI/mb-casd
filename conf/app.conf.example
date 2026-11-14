@@ -17,6 +17,10 @@ logPostOnly = true
 isUsernameLowered = false
 origin = "http://localhost:8000"
 originFrontend =
+# Exact HTTPS origins allowed to read credentialed CORS responses and use the
+# IAM session cookie. Empty preserves upstream behavior. No wildcard/suffix match.
+# Production portal + PM example: "https://www.openlims.ai,https://pm.openlims.ai"
+credentialedOrigins = ""
 staticBaseUrl = "https://cdn.casbin.org"
 isDemoMode = false
 batchSize = 100

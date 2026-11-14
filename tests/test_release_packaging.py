@@ -12,6 +12,7 @@ class PackagingTests(unittest.TestCase):
                      'build/Dockerfile.v4-password-revocation',
                      'patches/casdoor-3.152.0-password-revocation.patch',
                      'patches/casdoor-4.25.0-password-revocation-scoped-policy.patch',
+                     'patches/casdoor-4.25.0-credentialed-origins.patch',
                      'tests/v4-revocation/upstream.tar.gz'):
             self.assertIn('!' + path, rules, path)
 

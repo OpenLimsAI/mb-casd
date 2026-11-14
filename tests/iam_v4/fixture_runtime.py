@@ -73,7 +73,7 @@ def tool(suffix, image, source, env):
     docker('run', '-d', '--name', RUN + '-' + suffix, '--network', RUN + '-net', '--label', LABEL,
            *args, image, 'infinity')
 
-def iam(suffix, image, database, password, initial, *, dcr_self_logout=(), self_policy_clients=(), scoped_logout_clients=()):
+def iam(suffix, image, database, password, initial, *, dcr_self_logout=(), self_policy_clients=(), scoped_logout_clients=(), credentialed_origins=()):
     name = RUN + '-' + suffix
     docker('run', '-d', '--name', name, '--network', RUN + '-net', '--label', LABEL,
            '--tmpfs', '/runtime:rw,noexec,nosuid,mode=1777', '--tmpfs', '/conf:rw,noexec,nosuid,mode=1777', '--entrypoint', 'sh', image,
@@ -86,6 +86,9 @@ def iam(suffix, image, database, password, initial, *, dcr_self_logout=(), self_
                 'initDataFile': '"/runtime/init.json"', 'initDataNewOnly': 'true',
                 'initAdminPassword': json.dumps(new_secret()),
                 'logConfig': '{"adapter":"file","filename":"/runtime/iam.log","level":3,"maxdays":1}'}
+    if credentialed_origins:
+        assert set(credentialed_origins) == {'https://www.openlims.ai', 'https://pm.openlims.ai'}
+        settings['credentialedOrigins'] = json.dumps(','.join(credentialed_origins))
     if dcr_self_logout:
         approved={'mdm-signing-login','mdm-signing-portal','mdm-signing-pm'}
         assert set(dcr_self_logout)==approved and len(dcr_self_logout)==3

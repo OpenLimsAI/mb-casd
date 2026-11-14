@@ -41,6 +41,8 @@ jobs:
       - run: python3 tests/iam_v4/run_security.py --image mb-casd-v4:ci --run-tag ci-sec --replica
       - run: python3 tests/iam_v4/run_compatibility.py --image mb-casd-v4:ci --mode policy --run-tag ci-pol
       - run: python3 tests/iam_v4/run_compatibility.py --image mb-casd-v4:ci --mode default-off --run-tag ci-def
+      - run: python3 tests/iam_v4/run_cors.py --image mb-casd-v4:ci --run-tag ci-cors
+      - run: python3 tests/iam_v4/run_cors.py --image mb-casd-v4:ci --run-tag ci-cor0 --default-off
 
   validate:
     name: 校验 · 配置与种子数据
