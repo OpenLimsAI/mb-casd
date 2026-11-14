@@ -7,6 +7,7 @@ build/*
 patches/*
 !patches/casdoor-3.152.0-password-revocation.patch
 !patches/casdoor-4.25.0-password-revocation-scoped-policy.patch
+!patches/casdoor-4.25.0-credentialed-origins.patch
 !tests/
 tests/*
 !tests/v4-revocation/

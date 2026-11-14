@@ -45,3 +45,5 @@
 ### v4 候选兼容验证（未部署）
 
 固定 v4.25.0 补丁、受限本人接口与回退边界见 [ADR-0007](docs/decisions/0007-v4-revocation-scoped-policy.md)，复跑入口见 [协议回归](tests/iam_v4/README.md)。默认运行版本不自动切换；本地结果及限制见[候选验证](docs/verification/pr-candidate-20261105.md)。
+
+门户带凭据跨域登录的精确 HTTPS 来源配置见 [ADR-0008](docs/decisions/0008-credentialed-portal-origins.md)，[验证记录](docs/verification/credentialed-origins-20261114.md)。配置默认为空，不自动改变运行镜像或信任范围。

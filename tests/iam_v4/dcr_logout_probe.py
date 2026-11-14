@@ -65,7 +65,7 @@ print(json.dumps(rows))
 assert all(x['passed'] for x in rows),'Some protocol regressions failed'
 '''
 
-def run_fixture(run_id, output_dir, controller, *, image=None, self_logout_clients=(), fault_checks=False, self_policy_clients=(), scoped_logout_clients=(), refresh_clients=(), replica=False):
+def run_fixture(run_id, output_dir, controller, *, image=None, self_logout_clients=(), fault_checks=False, self_policy_clients=(), scoped_logout_clients=(), refresh_clients=(), replica=False, credentialed_origins=()):
     """Shared fixture only; every client remains DCR and all data is synthetic."""
     assert set(refresh_clients) <= {'mdm-signing-pm'}, 'Only the approved synthetic PM refresh client'
     assert __import__('re').fullmatch(r'mdm-e2e-[a-z0-9-]{1,64}', run_id), 'Synthetic run ID required'
@@ -83,7 +83,9 @@ def run_fixture(run_id, output_dir, controller, *, image=None, self_logout_clien
         r.docker('network','create','--internal','--label',r.LABEL,r.RUN+'-net')
         r.start('pg18',r.PG18,'--tmpfs','/var/lib/postgresql:rw','-e','POSTGRES_USER=cmab_app','-e','POSTGRES_PASSWORD='+pw)
         for _ in range(60):
-            if r.docker('exec',r.RUN+'-pg18','pg_isready','-U','cmab_app',allow_failure=True).returncode==0:break
+            # The initialization server accepts Unix sockets before restarting.
+            # TCP readiness identifies the final server used by the fixture.
+            if r.docker('exec',r.RUN+'-pg18','pg_isready','-h','127.0.0.1','-U','cmab_app',allow_failure=True).returncode==0:break
             time.sleep(.3)
         else:raise RuntimeError('New pg18 unavailable')
         r.create_db('pg18','dcr_synthetic')
@@ -101,10 +103,10 @@ def run_fixture(run_id, output_dir, controller, *, image=None, self_logout_clien
                  'applications':apps,'users':[{'owner':'mdm-signing-synthetic','name':'e2e.'+n,'id':'synthetic-'+n,'type':'normal-user','password':p,'displayName':'Synthetic '+n,'tag':'dcr','isAdmin':False,'signupApplication':'mdm-signing-portal'} for n,p in users.items()],
                  'roles':[{'owner':'mdm-signing-synthetic','name':role,'isEnabled':True,'users':['mdm-signing-synthetic/e2e.'+n]} for role,n in [('cmc_lead','signer'),('rd','other')]],
                  'certs':[{'owner':'admin','name':'synthetic-cert','scope':'JWT','type':'x509','cryptoAlgorithm':'RS256','bitSize':2048,'expireInYears':1}]}
-        r.iam('idp',image,'dcr_synthetic',pw,initial,dcr_self_logout=self_logout_clients,self_policy_clients=self_policy_clients,scoped_logout_clients=scoped_logout_clients)
+        r.iam('idp',image,'dcr_synthetic',pw,initial,dcr_self_logout=self_logout_clients,self_policy_clients=self_policy_clients,scoped_logout_clients=scoped_logout_clients,credentialed_origins=credentialed_origins)
         fixture={'base':'http://'+r.RUN+'-idp:8000','clients':clients,'callbacks':callbacks,'users':users}
         if replica:
-            r.iam('idp2',image,'dcr_synthetic',pw,initial,dcr_self_logout=self_logout_clients,self_policy_clients=self_policy_clients,scoped_logout_clients=scoped_logout_clients)
+            r.iam('idp2',image,'dcr_synthetic',pw,initial,dcr_self_logout=self_logout_clients,self_policy_clients=self_policy_clients,scoped_logout_clients=scoped_logout_clients,credentialed_origins=credentialed_origins)
             fixture['base_secondary']='http://'+r.RUN+'-idp2:8000'
         if fault_checks:
             fixture.update({'db_host':r.RUN+'-pg18','db_password':pw})

@@ -8,6 +8,7 @@ ALLOWED = (
     'build/Dockerfile.password-revocation', 'build/Dockerfile.v4-password-revocation',
     'patches/casdoor-3.152.0-password-revocation.patch',
     'patches/casdoor-4.25.0-password-revocation-scoped-policy.patch',
+    'patches/casdoor-4.25.0-credentialed-origins.patch',
     'tests/v4-revocation/upstream.tar.gz', 'tests/iam_v4/requirements.lock',
 )
 DENIED = ('.env', 'conf/app.conf', 'patches/private.secret', 'build/unreviewed.txt',
@@ -36,7 +37,7 @@ def main():
         missing = set(ALLOWED) - files
         leaked = set(DENIED) & files
         assert not missing and not leaked, f'missing={sorted(missing)}; unexpected={sorted(leaked)}'
-        print('Docker context verified: six required inputs present; six private/unreviewed sentinels excluded')
+        print(f'Docker context verified: {len(ALLOWED)} required inputs present; {len(DENIED)} private/unreviewed sentinels excluded')
 
 
 if __name__ == '__main__':
