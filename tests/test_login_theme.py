@@ -99,9 +99,13 @@ class SwissClinicalLoginThemeTests(unittest.TestCase):
                 return "Affected"
             app_name = target_id.split("/", 1)[1]
             if path == "get-application":
-                return copy.deepcopy(state["apps"][app_name])
+                rec = copy.deepcopy(state["apps"][app_name])
+                rec["organizationObj"] = copy.deepcopy(state["org"])
+                return rec
             if path == "update-application":
-                state["apps"][app_name] = copy.deepcopy(body)
+                saved = copy.deepcopy(body)
+                saved.pop("organizationObj", None)
+                state["apps"][app_name] = saved
                 return "Affected"
             raise AssertionError(f"Unexpected path: {path}")
 
@@ -169,9 +173,13 @@ class SwissClinicalLoginThemeTests(unittest.TestCase):
                 state["org"] = copy.deepcopy(body)
                 return "Affected"
             if path == "get-application":
-                return copy.deepcopy(state["app"])
+                rec = copy.deepcopy(state["app"])
+                rec["organizationObj"] = copy.deepcopy(state["org"])
+                return rec
             if path == "update-application":
-                state["app"] = copy.deepcopy(body)
+                saved = copy.deepcopy(body)
+                saved.pop("organizationObj", None)
+                state["app"] = saved
                 if tamper_once:
                     tamper_once = False
                     state["app"]["redirectUris"] = ["https://unexpected.invalid"]

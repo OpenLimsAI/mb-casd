@@ -40,8 +40,17 @@ APP_PATCH_PATH = ASSETS_DIR / "application-theme.patch.json"
 
 ORG_ID = "admin/mabpharm"
 ORG_NAME = "mabpharm"
-DEFAULT_APPS = ("maibo-portal", "mp-pm", "dikw-kb", "dikw-web")
+DEFAULT_APPS = ("maibo-portal", "mp-pm", "dikw-kb", "dikw-web", "maibo-mdm")
 APP_THEME_FIELDS = frozenset({"themeData", "formCss", "formCssMobile"})
+
+
+def _non_theme_app_projection(record: dict) -> dict:
+    """Project all non-theme fields of an application, normalizing Casdoor's embedded organizationObj.themeData mirror."""
+    projected = {k: v for k, v in record.items() if k not in APP_THEME_FIELDS}
+    org_obj = projected.get("organizationObj")
+    if isinstance(org_obj, dict):
+        projected["organizationObj"] = {k: v for k, v in org_obj.items() if k != "themeData"}
+    return projected
 
 
 class ThemeSyncError(RuntimeError):
@@ -241,24 +250,23 @@ def sync_theme(
             actual = call("GET", "get-application", params={"id": app_id})
             if (
                 not isinstance(actual, dict)
-                or {k: v for k, v in actual.items() if k not in APP_THEME_FIELDS}
-                != {k: v for k, v in orig.items() if k not in APP_THEME_FIELDS}
+                or _non_theme_app_projection(actual) != _non_theme_app_projection(orig)
                 or any(actual.get(k) != intended[k] for k in APP_THEME_FIELDS)
             ):
                 raise ThemeSyncError(f"应用 {app_id} 回读校验发现非主题字段变化")
     except ThemeSyncError as exc:
         rollback_ok = True
+        if org_updated:
+            try:
+                call("POST", "update-organization", params={"id": ORG_ID}, body=org_orig)
+                rollback_ok = (call("GET", "get-organization", params={"id": ORG_ID}) == org_orig) and rollback_ok
+            except ThemeSyncError:
+                rollback_ok = False
         for name in reversed(attempted_apps):
             app_id = f"admin/{name}"
             try:
                 call("POST", "update-application", params={"id": app_id}, body=app_originals[name])
                 rollback_ok = (call("GET", "get-application", params={"id": app_id}) == app_originals[name]) and rollback_ok
-            except ThemeSyncError:
-                rollback_ok = False
-        if org_updated:
-            try:
-                call("POST", "update-organization", params={"id": ORG_ID}, body=org_orig)
-                rollback_ok = (call("GET", "get-organization", params={"id": ORG_ID}) == org_orig) and rollback_ok
             except ThemeSyncError:
                 rollback_ok = False
         write_private_json(session_dir / "receipt.private.json", {"completed": False, "rollback_verified": rollback_ok})
