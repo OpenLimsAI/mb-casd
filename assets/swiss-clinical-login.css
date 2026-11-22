@@ -1,0 +1,133 @@
+/* MBERP Swiss Clinical v2 — Casdoor Identity Sign-In Theme (v3 AntD & v4 AuthLayout) */
+body:has(.login-content),
+.login-background:not([style*="background-image"]) {
+  background: #F6F8FA;
+  color: #0F172A;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.login-content .login-panel:not(.login-panel-bleed) {
+  background: #FFFFFF;
+  border: 1px solid #D8E0E8;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.login-content .login-form {
+  color: #0F172A;
+}
+
+.login-content .login-logo-box {
+  margin-bottom: 20px;
+}
+
+.login-content .text-muted-foreground,
+.login-content .login-signup-link,
+.login-content .ant-form-item-extra {
+  color: #64748B;
+}
+
+/* Inputs, selects & verification code fields — crisp 1px #D8E0E8 border, 4px radius */
+.login-form input:not([type="checkbox"]):not([type="radio"]),
+.login-form [role="combobox"],
+.login-content .ant-input,
+.login-content .ant-input-affix-wrapper,
+.login-content .ant-select-selector {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid #D8E0E8;
+  border-radius: 4px;
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.login-content .ant-input-affix-wrapper > input.ant-input {
+  border: 0;
+  box-shadow: none;
+}
+
+.login-form input:not([type="checkbox"]):not([type="radio"]):focus,
+.login-form input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+.login-form [role="combobox"]:focus,
+.login-content .ant-input:focus,
+.login-content .ant-input-affix-wrapper-focused,
+.login-content .ant-select-focused .ant-select-selector {
+  border-color: #1E466B;
+  box-shadow: 0 0 0 2px rgba(30, 70, 107, 0.16);
+  outline: none;
+}
+
+/* Primary action button — Swiss Clinical Deep Navy #1E466B, 4px radius, zero diffuse glow */
+.login-form .login-button,
+.login-content .ant-btn-primary {
+  border-radius: 4px;
+  background: #1E466B;
+  border: 1px solid #1E466B;
+  color: #FFFFFF;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.login-form .login-button:not(:disabled):hover,
+.login-content .ant-btn-primary:not(:disabled):hover {
+  background: #163654;
+  border-color: #163654;
+  color: #FFFFFF;
+}
+
+/* Secondary / outline buttons & checkboxes */
+.login-form button[type="button"]:not(.login-button),
+.login-content .ant-btn-default {
+  border-radius: 4px;
+  border-color: #D8E0E8;
+  box-shadow: none;
+}
+
+.login-form [role="checkbox"][data-state="checked"],
+.login-content .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1E466B;
+  border-color: #1E466B;
+}
+
+@media (max-width: 640px) {
+  .login-content {
+    padding-inline: 16px;
+  }
+  .login-content .login-panel:not(.login-panel-bleed),
+  .login-content .login-panel-dark {
+    max-width: 100%;
+    border-radius: 6px;
+  }
+}
+
+/* Restrained dark-mode fallback for apps that explicitly expose ThemeToggle */
+html.dark body:has(.login-content),
+html.dark .login-background:not([style*="background-image"]),
+body:has(.login-panel-dark) {
+  background: #0B131E;
+  color: #F1F5F9;
+}
+
+html.dark .login-content .login-panel:not(.login-panel-bleed),
+.login-content .login-panel-dark {
+  background: #111D2B;
+  border: 1px solid #26384C;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+html.dark .login-content .login-form,
+.login-panel-dark .login-form {
+  color: #F1F5F9;
+}
+
+html.dark .login-form input:not([type="checkbox"]):not([type="radio"]),
+html.dark .login-form [role="combobox"],
+.login-panel-dark .ant-input,
+.login-panel-dark .ant-input-affix-wrapper,
+.login-panel-dark .ant-select-selector {
+  background: #0F1A27;
+  color: #F1F5F9;
+  border-color: #26384C;
+}

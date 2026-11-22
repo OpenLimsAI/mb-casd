@@ -1,0 +1,8 @@
+{
+  "themeData": {
+    "themeType": "default",
+    "colorPrimary": "#1E466B",
+    "borderRadius": 6,
+    "isCompact": false
+  }
+}

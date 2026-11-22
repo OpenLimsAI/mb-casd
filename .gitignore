@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 *.secret
+*.private.json
+backups/
+__pycache__/
 # app.conf contains inlined DB credentials (beego v3.100.0 does not expand ${VAR} in app.conf)
 conf/app.conf
 
