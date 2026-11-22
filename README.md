@@ -15,6 +15,13 @@
    python3 scripts/harden.py --check   # 已加固时退出码 0
    ```
 
+5. **登录页主题同步（MBERP Swiss Clinical v2）**：种子初始化（`init_data/init_data.json`）已内置 Swiss Clinical v2 主题色（`#1E466B`）、`6px`/`4px` 几何圆角与克制边框样式（源文件 `assets/swiss-clinical-login.css`）。对已初始化的实例（`initDataNewOnly=true` 不覆盖既有记录），可通过受控管理脚本只读核对或幂等同步主题字段（严禁触碰任何认证/OIDC/CORS/会话配置）：
+
+   ```bash
+   python3 scripts/apply_theme.py --check
+   python3 scripts/apply_theme.py --backup-dir ./backups
+   ```
+
 密码全局撤销的安全候选构建及验收见 [ADR-0006](docs/decisions/0006-password-revocation-backport.md)。未完成隔离验收前不视为已部署。
 
 ## 接入上层应用

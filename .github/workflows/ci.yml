@@ -54,6 +54,9 @@ jobs:
         run: |
           python3 -c "import json; json.load(open('init_data/init_data.json')); print('init_data.json: valid JSON')"
 
+      - name: Swiss Clinical v2 登录主题资产与种子同步校验
+        run: python3 -m unittest tests/test_login_theme.py
+
       - name: docker-compose.yml 可渲染（含变量替换）
         run: |
           # 用示例环境变量做替换；compose config 只校验配置本身，不要求 bind-mount 源存在。
